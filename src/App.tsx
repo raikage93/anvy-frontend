@@ -1,7 +1,33 @@
-import QRGeneratorPage from './pages/QRGeneratorPage'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './hooks/useAuth';
+import QRGeneratorPage from './pages/QRGeneratorPage';
+import LoginPage from './pages/LoginPage';
+import AdminPage from './pages/AdminPage';
 
-function App() {
-  return <QRGeneratorPage />
+function ProtectedAdmin({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (!user || user.role !== 'admin') return <Navigate to="/login" replace />;
+  return <>{children}</>;
 }
 
-export default App
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<QRGeneratorPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/admin" element={<ProtectedAdmin><AdminPage /></ProtectedAdmin>} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
