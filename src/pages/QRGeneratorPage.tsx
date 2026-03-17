@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import { generateQRUrl } from '../services/vietqr';
 import AmountInput from '../components/AmountInput';
 import QRDisplay from '../components/QRDisplay';
@@ -7,6 +8,7 @@ import api from '../services/api';
 import type { DefaultInfo } from '../types';
 
 export default function QRGeneratorPage() {
+  const { user } = useAuth();
   const [defaultInfo, setDefaultInfo] = useState<DefaultInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [qrUrl, setQrUrl] = useState('');
@@ -51,9 +53,15 @@ export default function QRGeneratorPage() {
             </div>
             <span className="font-bold text-text">AnVy QR</span>
           </div>
-          <Link to="/login" className="text-sm text-text-muted hover:text-primary transition-colors">
-            Đăng nhập
-          </Link>
+          {user?.role === 'admin' ? (
+            <Link to="/admin" className="text-sm text-text-muted hover:text-primary transition-colors">
+              ⚙ Admin
+            </Link>
+          ) : (
+            <Link to="/login" className="text-sm text-text-muted hover:text-primary transition-colors">
+              Đăng nhập
+            </Link>
+          )}
         </div>
       </header>
 
