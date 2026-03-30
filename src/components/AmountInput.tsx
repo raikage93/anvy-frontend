@@ -39,7 +39,7 @@ export default function AmountInput({ onGenerate }: Props) {
             value={value}
             onChange={handleChange}
             placeholder="0"
-            className="w-full bg-surface-light border border-border rounded-xl px-4 py-4 pr-16 text-2xl font-bold text-text placeholder:text-text-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-right"
+            className="w-full bg-surface-light border border-border rounded-xl px-4 py-4 pr-16 text-right text-xl font-bold text-text placeholder:text-text-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all sm:text-2xl"
           />
           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted font-medium">VNĐ</span>
         </div>
@@ -49,7 +49,7 @@ export default function AmountInput({ onGenerate }: Props) {
       </div>
 
       {/* Quick amounts */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {quickAmounts.map(q => (
           <button
             key={q}
@@ -65,7 +65,7 @@ export default function AmountInput({ onGenerate }: Props) {
       <button
         type="submit"
         disabled={amount <= 0}
-        className="w-full py-3.5 rounded-xl bg-primary text-white font-semibold text-lg hover:bg-primary-dark disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-base font-semibold text-white transition-all hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-40 active:scale-[0.98] sm:text-lg"
       >
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />

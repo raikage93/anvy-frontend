@@ -149,7 +149,7 @@ export default function DefaultInfoForm({ initialData, onSave, onCancel }: Props
       </div>
 
       {/* Buttons */}
-      <div className="flex gap-3 pt-2">
+      <div className="flex flex-col gap-3 pt-2 sm:flex-row">
         {onCancel && (
           <button
             type="button"

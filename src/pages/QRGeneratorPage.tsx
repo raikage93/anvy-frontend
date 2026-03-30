@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { generateQRUrl } from '../services/vietqr';
 import AmountInput from '../components/AmountInput';
 import QRDisplay from '../components/QRDisplay';
+import BrandMark from '../components/BrandMark';
 import api from '../services/api';
 import type { DefaultInfo } from '../types';
 
@@ -46,22 +47,27 @@ export default function QRGeneratorPage() {
     <div className="min-h-dvh flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-surface/80 backdrop-blur-xl border-b border-border/50">
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-lg mx-auto flex flex-col gap-3 px-4 py-3 sm:h-14 sm:flex-row sm:items-center sm:justify-between sm:py-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <span className="text-white text-sm font-bold">A</span>
+            <BrandMark size="sm" />
+            <div>
+              <span className="font-bold text-text">AnVy Payment</span>
             </div>
-            <span className="font-bold text-text">AnVy QR</span>
           </div>
-          {user?.role === 'admin' ? (
-            <Link to="/admin" className="text-sm text-text-muted hover:text-primary transition-colors">
-              ⚙ Admin
+          <div className="flex flex-wrap items-center gap-3">
+            <Link to="/" className="text-sm text-text-muted hover:text-primary transition-colors">
+              Trang chủ
             </Link>
-          ) : (
-            <Link to="/login" className="text-sm text-text-muted hover:text-primary transition-colors">
-              Đăng nhập
-            </Link>
-          )}
+            {user?.role === 'admin' ? (
+              <Link to="/admin" className="text-sm text-text-muted hover:text-primary transition-colors">
+                ⚙ Admin
+              </Link>
+            ) : (
+              <Link to="/login" className="text-sm text-text-muted hover:text-primary transition-colors">
+                Đăng nhập
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 
@@ -112,7 +118,7 @@ export default function QRGeneratorPage() {
 
       {/* Footer */}
       <footer className="py-4 text-center text-xs text-text-muted border-t border-border/30">
-        AnVy QR &middot; Powered by VietQR
+        AnVy Payment &middot; Powered by VietQR
       </footer>
     </div>
   );

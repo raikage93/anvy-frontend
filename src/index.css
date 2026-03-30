@@ -20,9 +20,14 @@
   body {
     @apply bg-surface text-text font-sans antialiased;
     min-height: 100dvh;
+    overflow-x: hidden;
   }
 
   * {
     @apply box-border;
+  }
+
+  img {
+    max-width: 100%;
   }
 }

@@ -53,11 +53,11 @@ export default function QRDisplay({ qrUrl, amount, info, onBack }: Props) {
       {/* QR Card */}
       <div className="bg-white rounded-2xl p-5 shadow-lg">
         {/* Bank info header */}
-        <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
+        <div className="mb-4 flex items-center gap-3 border-b border-gray-100 pb-3">
           <img src={info.bankLogo} alt="" className="w-10 h-10 rounded-lg object-contain" />
-          <div>
-            <div className="font-semibold text-gray-900">{info.bankName}</div>
-            <div className="text-sm text-gray-500">STK: {info.accountNo}</div>
+          <div className="min-w-0">
+            <div className="truncate font-semibold text-gray-900">{info.bankName}</div>
+            <div className="truncate text-sm text-gray-500">STK: {info.accountNo}</div>
           </div>
         </div>
 
@@ -97,7 +97,7 @@ export default function QRDisplay({ qrUrl, amount, info, onBack }: Props) {
       </div>
 
       {/* Action buttons */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <button
           onClick={handleDownload}
           className="flex items-center justify-center gap-2 py-3 rounded-xl bg-surface-light border border-border text-text font-medium hover:bg-surface-lighter transition-all active:scale-[0.98]"

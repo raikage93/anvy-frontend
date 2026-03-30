@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import BrandMark from '../components/BrandMark';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -26,13 +27,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-dvh flex items-center justify-center px-4">
+    <div className="min-h-dvh flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white text-2xl font-bold">A</span>
-          </div>
-          <h1 className="text-2xl font-bold text-text">AnVy QR</h1>
+          <BrandMark size="lg" className="mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-text">AnVy Clinic</h1>
           <p className="text-text-muted text-sm mt-1">Đăng nhập để tiếp tục</p>
         </div>
 
