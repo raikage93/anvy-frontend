@@ -40,6 +40,10 @@ function buildTargetRotation(currentRotation: number, segmentIndex: number, tota
   return currentRotation + 6 * 360 + delta;
 }
 
+function wait(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
 export default function LuckyWheelPage() {
   const wheelSectionRef = useRef<HTMLDivElement | null>(null);
   const [prizes, setPrizes] = useState<WheelPrize[]>([]);
@@ -99,7 +103,6 @@ export default function LuckyWheelPage() {
       window.setTimeout(() => {
         setResult(payload);
         setIsSpinning(false);
-        setIsPhoneModalOpen(false);
       }, 4700);
     } catch (err: any) {
       const message = err.response?.data?.error || 'Không thể quay thưởng lúc này.';
@@ -125,20 +128,29 @@ export default function LuckyWheelPage() {
     }
 
     const rect = wheelSectionRef.current.getBoundingClientRect();
-    const topVisibleThreshold = 96;
-    const bottomVisibleThreshold = window.innerHeight - 48;
-    const alreadyVisible = rect.top >= topVisibleThreshold && rect.bottom <= bottomVisibleThreshold;
+    const centerY = window.innerHeight / 2;
+    const wheelCenterY = rect.top + rect.height / 2;
+    const alreadyCentered = Math.abs(wheelCenterY - centerY) <= 56;
 
-    if (alreadyVisible) {
+    if (alreadyCentered) {
       return;
     }
 
-    wheelSectionRef.current.scrollIntoView({
+    const targetTop = Math.max(window.scrollY + rect.top - (window.innerHeight / 2 - rect.height / 2), 0);
+
+    window.scrollTo({
       behavior: 'smooth',
-      block: 'start',
+      top: targetTop,
     });
 
-    await new Promise((resolve) => window.setTimeout(resolve, 420));
+    await wait(460);
+  };
+
+  const closePhoneModalAndFocusWheel = async () => {
+    setIsPhoneModalOpen(false);
+
+    await wait(60);
+    await scrollToWheelOnMobile();
   };
 
   const handleSpinClick = () => {
@@ -165,7 +177,10 @@ export default function LuckyWheelPage() {
     setVerifiedPhone(normalizedPhone);
     window.localStorage.setItem(WHEEL_PHONE_STORAGE_KEY, normalizedPhone);
     setPhoneError('');
-    void performSpin(normalizedPhone);
+    void (async () => {
+      await closePhoneModalAndFocusWheel();
+      await performSpin(normalizedPhone);
+    })();
   };
 
   const canSpin = prizes.some((item) => item.remaining_quantity > 0);
