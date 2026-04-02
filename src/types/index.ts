@@ -70,4 +70,21 @@ export interface WheelSettings {
   updated_at?: string;
 }
 
+export interface WheelClaim {
+  id: number;
+  spin_id?: number;
+  prize_id?: number | null;
+  phone: string;
+  prize_name: string;
+  prize_description: string;
+  prize_color: string;
+  status: 'issued' | 'redeemed';
+  issued_at: string;
+  redeemed_at?: string | null;
+  redeemed_by?: number | null;
+  redeemed_by_username?: string | null;
+  token?: string;
+  qr_payload?: string;
+}
+
 export const STORAGE_KEY = 'anvy_default_info';

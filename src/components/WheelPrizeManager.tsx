@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
 import type { WheelPrize, WheelSettings, WheelSpin } from '../types';
+import WheelClaimScanner from './WheelClaimScanner';
 import LuckyWheelBoard from './LuckyWheelBoard';
 
 type PrizeFormState = {
@@ -178,6 +179,8 @@ export default function WheelPrizeManager() {
           {message.text}
         </div>
       ) : null}
+
+      <WheelClaimScanner onClaimUpdated={() => void fetchData()} />
 
       <div className="rounded-[28px] border border-border bg-surface-light p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent-light">Luật chơi mỗi ngày</p>

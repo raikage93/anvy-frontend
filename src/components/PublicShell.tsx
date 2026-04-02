@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState, type ReactNode } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import BrandMark from './BrandMark';
 
@@ -20,60 +20,128 @@ const navItems: Array<{ key: PublicPageKey; label: string; to: string }> = [
 
 export default function PublicShell({ active, children }: Props) {
   const { user } = useAuth();
+  const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   return (
     <div className="min-h-dvh bg-[#f7f9fb] text-[#191c1e]">
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2 sm:px-6 lg:px-8">
-          <Link to="/" className="flex min-w-0 items-center">
-            <BrandMark size="md" className="shrink-0" />
-          </Link>
-
-          <div className="hidden items-center gap-7 md:flex">
-            {navItems.map((item) => (
-              <Link
-                key={item.key}
-                to={item.to}
-                className={`border-b-2 pb-1 font-['Manrope'] text-sm font-bold tracking-tight transition-colors ${
-                  active === item.key
-                    ? 'border-[#00478d] text-[#00478d]'
-                    : 'border-transparent text-slate-500 hover:text-[#005eb8]'
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
-
-          <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
-            <Link
-              to="/payment"
-              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
-            >
-              Thanh toán
+        <nav className="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-4">
+            <Link to="/" className="flex min-w-0 items-center">
+              <BrandMark size="md" className="shrink-0" />
             </Link>
-            {user?.role === 'admin' ? (
+
+            <div className="hidden items-center gap-7 md:flex">
+              {navItems.map((item) => (
+                <Link
+                  key={item.key}
+                  to={item.to}
+                  className={`border-b-2 pb-1 font-['Manrope'] text-sm font-bold tracking-tight transition-colors ${
+                    active === item.key
+                      ? 'border-[#00478d] text-[#00478d]'
+                      : 'border-transparent text-slate-500 hover:text-[#005eb8]'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+
+            <div className="hidden flex-wrap items-center justify-end gap-2 md:flex sm:gap-3">
               <Link
-                to="/admin"
+                to="/payment"
                 className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
               >
-                Quản trị
+                Thanh toán
               </Link>
-            ) : (
+              {user?.role === 'admin' ? (
+                <Link
+                  to="/admin"
+                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+                >
+                  Quản trị
+                </Link>
+              ) : (
+                <Link
+                  to="/login"
+                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+                >
+                  Đăng nhập
+                </Link>
+              )}
               <Link
-                to="/login"
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+                to="/booking"
+                className="rounded-full bg-[linear-gradient(135deg,#00478d_0%,#005eb8_100%)] px-5 py-2.5 text-sm font-['Manrope'] font-extrabold text-white shadow-lg shadow-blue-900/15 transition hover:opacity-95"
               >
-                Đăng nhập
+                Đặt lịch
               </Link>
-            )}
-            <Link
-              to="/booking"
-              className="rounded-full bg-[linear-gradient(135deg,#00478d_0%,#005eb8_100%)] px-5 py-2.5 text-sm font-['Manrope'] font-extrabold text-white shadow-lg shadow-blue-900/15 transition hover:opacity-95"
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen((current) => !current)}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:text-slate-900 md:hidden"
+              aria-label={isMobileMenuOpen ? 'Đóng menu' : 'Mở menu'}
+              aria-expanded={isMobileMenuOpen}
             >
-              Đặt lịch
-            </Link>
+              <span className="text-xl leading-none">{isMobileMenuOpen ? '×' : '☰'}</span>
+            </button>
           </div>
+
+          {isMobileMenuOpen ? (
+            <div className="mt-3 rounded-[28px] border border-slate-200 bg-white p-4 shadow-lg shadow-slate-900/5 md:hidden">
+              <div className="grid gap-2">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.key}
+                    to={item.to}
+                    className={`rounded-2xl px-4 py-3 font-['Manrope'] text-sm font-bold transition ${
+                      active === item.key
+                        ? 'bg-[#dbeafe] text-[#00478d]'
+                        : 'text-slate-700 hover:bg-slate-50 hover:text-[#005eb8]'
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+
+              <div className="mt-4 grid gap-2">
+                <Link
+                  to="/payment"
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900"
+                >
+                  Thanh toán
+                </Link>
+                {user?.role === 'admin' ? (
+                  <Link
+                    to="/admin"
+                    className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900"
+                  >
+                    Quản trị
+                  </Link>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900"
+                  >
+                    Đăng nhập
+                  </Link>
+                )}
+                <Link
+                  to="/booking"
+                  className="rounded-2xl bg-[linear-gradient(135deg,#00478d_0%,#005eb8_100%)] px-4 py-3 text-center text-sm font-['Manrope'] font-extrabold text-white shadow-lg shadow-blue-900/15 transition hover:opacity-95"
+                >
+                  Đặt lịch
+                </Link>
+              </div>
+            </div>
+          ) : null}
         </nav>
       </header>
 

@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import WheelClaimQrCard from '../components/WheelClaimQrCard';
 import LuckyWheelBoard from '../components/LuckyWheelBoard';
 import WheelNoticeModal from '../components/WheelNoticeModal';
 import WheelPhoneModal from '../components/WheelPhoneModal';
 import PublicShell from '../components/PublicShell';
 import api from '../services/api';
-import type { WheelPrize, WheelSettings, WheelSpin } from '../types';
+import type { WheelClaim, WheelPrize, WheelSettings, WheelSpin } from '../types';
 
 type SpinResponse = {
   spin: WheelSpin;
@@ -15,6 +16,7 @@ type SpinResponse = {
   spins_used_today: number;
   spins_remaining_today: number;
   phone: string;
+  claim: WheelClaim;
 };
 
 const WHEEL_PHONE_STORAGE_KEY = 'anvy_wheel_phone';
@@ -39,6 +41,7 @@ function buildTargetRotation(currentRotation: number, segmentIndex: number, tota
 }
 
 export default function LuckyWheelPage() {
+  const wheelSectionRef = useRef<HTMLDivElement | null>(null);
   const [prizes, setPrizes] = useState<WheelPrize[]>([]);
   const [wheelSettings, setWheelSettings] = useState<WheelSettings>({ max_daily_spins_per_phone: 1 });
   const [rotation, setRotation] = useState(0);
@@ -116,14 +119,40 @@ export default function LuckyWheelPage() {
     }
   };
 
-  const handleSpinClick = () => {
-    if (!verifiedPhone) {
-      setPhoneError('');
-      setIsPhoneModalOpen(true);
+  const scrollToWheelOnMobile = async () => {
+    if (window.innerWidth >= 768 || !wheelSectionRef.current) {
       return;
     }
 
-    void performSpin(verifiedPhone);
+    const rect = wheelSectionRef.current.getBoundingClientRect();
+    const topVisibleThreshold = 96;
+    const bottomVisibleThreshold = window.innerHeight - 48;
+    const alreadyVisible = rect.top >= topVisibleThreshold && rect.bottom <= bottomVisibleThreshold;
+
+    if (alreadyVisible) {
+      return;
+    }
+
+    wheelSectionRef.current.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+
+    await new Promise((resolve) => window.setTimeout(resolve, 420));
+  };
+
+  const handleSpinClick = () => {
+    void (async () => {
+      await scrollToWheelOnMobile();
+
+      if (!verifiedPhone) {
+        setPhoneError('');
+        setIsPhoneModalOpen(true);
+        return;
+      }
+
+      await performSpin(verifiedPhone);
+    })();
   };
 
   const handlePhoneSubmit = (phone: string) => {
@@ -215,7 +244,7 @@ export default function LuckyWheelPage() {
             {error ? <p className="mt-5 text-sm font-medium text-red-500">{error}</p> : null}
           </div>
 
-          <div>
+          <div ref={wheelSectionRef}>
             {loading ? (
               <div className="flex justify-center py-20">
                 <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#005eb8]/20 border-t-[#005eb8]" />
@@ -294,47 +323,39 @@ export default function LuckyWheelPage() {
 
       {result ? (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/65 px-4 py-8 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-[32px] bg-white p-8 shadow-[0_40px_80px_rgba(15,23,42,0.32)]">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[radial-gradient(circle_at_top,#ffe7a8_0%,#ffc857_52%,#ffb100_100%)] text-4xl shadow-lg shadow-amber-400/30">
+          <div className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-[32px] bg-white p-6 shadow-[0_40px_80px_rgba(15,23,42,0.32)] sm:p-7">
+            <button
+              type="button"
+              onClick={() => setResult(null)}
+              className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-lg font-semibold text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
+              aria-label="Đóng thông báo"
+            >
+              ×
+            </button>
+
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[radial-gradient(circle_at_top,#ffe7a8_0%,#ffc857_52%,#ffb100_100%)] text-3xl shadow-lg shadow-amber-400/30">
               🎁
             </div>
-            <p className="mt-6 text-center text-xs font-bold uppercase tracking-[0.3em] text-[#005eb8]">Kết quả quay thưởng</p>
-            <h3 className="mt-3 text-center font-['Manrope'] text-4xl font-extrabold tracking-[-0.04em] text-slate-900">
+            <p className="mt-5 text-center text-xs font-bold uppercase tracking-[0.3em] text-[#005eb8]">Kết quả quay thưởng</p>
+            <h3 className="mt-3 text-center font-['Manrope'] text-3xl font-extrabold tracking-[-0.04em] text-slate-900">
               {result.prize.name}
             </h3>
-            <p className="mt-4 text-center text-base leading-8 text-slate-600">
-              {result.prize.description || 'Chúc mừng bạn đã nhận được phần quà từ AnVy Clinic.'}
+            <p className="mt-3 text-center text-sm leading-7 text-slate-600">
+              Mở mã QR này để admin quét khi bạn đến nhận quà.
             </p>
 
-            <div className="mt-6 rounded-[28px] border border-slate-200 bg-[#f7f9fb] px-5 py-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-sm text-slate-500">Mã lượt quay</span>
-                <span className="font-['Manrope'] text-lg font-extrabold text-slate-900">#{result.spin.id}</span>
-              </div>
-              <div className="mt-3 flex items-center justify-between gap-3">
-                <span className="text-sm text-slate-500">Số lượng còn lại</span>
-                <span className="font-['Manrope'] text-lg font-extrabold text-slate-900">{result.prize.remaining_quantity}</span>
-              </div>
-              <div className="mt-3 flex items-center justify-between gap-3">
-                <span className="text-sm text-slate-500">Số điện thoại xác minh</span>
-                <span className="font-['Manrope'] text-lg font-extrabold text-slate-900">{result.phone}</span>
-              </div>
+            <div className="mt-5">
+              <WheelClaimQrCard claim={result.claim} />
             </div>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-5">
               <button
                 type="button"
                 onClick={() => setResult(null)}
-                className="flex-1 rounded-full bg-[linear-gradient(135deg,#00478d_0%,#005eb8_100%)] px-6 py-3 text-center font-['Manrope'] text-base font-extrabold text-white transition hover:opacity-95"
+                className="w-full rounded-full bg-[linear-gradient(135deg,#00478d_0%,#005eb8_100%)] px-6 py-3 text-center font-['Manrope'] text-base font-extrabold text-white transition hover:opacity-95"
               >
-                Đóng thông báo
+                Đóng
               </button>
-              <Link
-                to="/booking"
-                className="flex-1 rounded-full border border-slate-300 bg-white px-6 py-3 text-center font-['Manrope'] text-base font-bold text-slate-700 transition hover:border-[#00478d] hover:text-[#00478d]"
-              >
-                Đặt lịch ngay
-              </Link>
             </div>
           </div>
         </div>
