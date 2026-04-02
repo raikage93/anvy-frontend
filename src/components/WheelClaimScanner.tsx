@@ -54,6 +54,14 @@ export default function WheelClaimScanner({ onClaimUpdated }: Props) {
     return 'Không thể mở camera để quét QR.';
   };
 
+  const isMobileBrowser = () => {
+    if (typeof navigator === 'undefined') {
+      return false;
+    }
+
+    return /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
+  };
+
   const stopScanner = async () => {
     const scanner = scannerRef.current;
     scannerRef.current = null;
@@ -112,19 +120,40 @@ export default function WheelClaimScanner({ onClaimUpdated }: Props) {
           void verifyToken(decodedText);
         };
 
-        const cameras = await Html5Qrcode.getCameras();
-        if (!cameras || cameras.length === 0) {
-          throw new Error('Chrome không tìm thấy camera nào trên thiết bị này.');
-        }
-
-        const preferredCamera =
-          cameras.find((camera) => /back|rear|environment/gi.test(camera.label)) ||
-          cameras[0];
-
         try {
-          await scanner.start(preferredCamera.id, scanConfig, onSuccess, () => {});
+          if (isMobileBrowser()) {
+            await scanner.start({ facingMode: { exact: 'environment' } }, scanConfig, onSuccess, () => {});
+          } else {
+            const cameras = await Html5Qrcode.getCameras();
+            if (!cameras || cameras.length === 0) {
+              throw new Error('Trình duyệt không tìm thấy camera nào trên thiết bị này.');
+            }
+
+            const preferredCamera =
+              cameras.find((camera) => /back|rear|environment/gi.test(camera.label)) ||
+              cameras[0];
+
+            await scanner.start(preferredCamera.id, scanConfig, onSuccess, () => {});
+          }
         } catch {
-          await scanner.start(cameras[0].id, scanConfig, onSuccess, () => {});
+          try {
+            await scanner.start({ facingMode: 'environment' }, scanConfig, onSuccess, () => {});
+          } catch {
+            const cameras = await Html5Qrcode.getCameras();
+            if (!cameras || cameras.length === 0) {
+              throw new Error('Trình duyệt không tìm thấy camera nào trên thiết bị này.');
+            }
+
+            const preferredCamera =
+              cameras.find((camera) => /back|rear|environment/gi.test(camera.label)) ||
+              cameras[0];
+
+            try {
+              await scanner.start(preferredCamera.id, scanConfig, onSuccess, () => {});
+            } catch {
+              await scanner.start(cameras[0].id, scanConfig, onSuccess, () => {});
+            }
+          }
         }
       } catch (err: any) {
         setScannerError(
