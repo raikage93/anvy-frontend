@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import BrandMark from './BrandMark';
 
-type PublicPageKey = 'home' | 'services' | 'eyewear' | 'booking';
+type PublicPageKey = 'home' | 'services' | 'eyewear' | 'booking' | 'wheel';
 
 type Props = {
   active: PublicPageKey;
@@ -14,6 +14,7 @@ const navItems: Array<{ key: PublicPageKey; label: string; to: string }> = [
   { key: 'home', label: 'Trang chủ', to: '/' },
   { key: 'services', label: 'Dịch vụ', to: '/services' },
   { key: 'eyewear', label: 'Gọng kính', to: '/eyewear' },
+  { key: 'wheel', label: 'Vòng quay', to: '/lucky-wheel' },
   { key: 'booking', label: 'Đặt lịch', to: '/booking' },
 ];
 

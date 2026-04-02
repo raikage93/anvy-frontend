@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage';
 import ServicesPage from './pages/ServicesPage';
 import EyewearPage from './pages/EyewearPage';
 import BookingPage from './pages/BookingPage';
+import LuckyWheelPage from './pages/LuckyWheelPage';
 import QRGeneratorPage from './pages/QRGeneratorPage';
 import LoginPage from './pages/LoginPage';
 import AdminPage from './pages/AdminPage';
@@ -21,6 +22,7 @@ function AppRoutes() {
       <Route path="/" element={<HomePage />} />
       <Route path="/services" element={<ServicesPage />} />
       <Route path="/eyewear" element={<EyewearPage />} />
+      <Route path="/lucky-wheel" element={<LuckyWheelPage />} />
       <Route path="/booking" element={<BookingPage />} />
       <Route path="/payment" element={<QRGeneratorPage />} />
       <Route path="/login" element={<LoginPage />} />

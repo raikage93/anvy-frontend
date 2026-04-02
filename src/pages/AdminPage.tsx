@@ -4,10 +4,11 @@ import { useAuth } from '../hooks/useAuth';
 import DefaultInfoForm from '../components/DefaultInfoForm';
 import BrandMark from '../components/BrandMark';
 import AvailabilitySummary from '../components/AvailabilitySummary';
+import WheelPrizeManager from '../components/WheelPrizeManager';
 import api from '../services/api';
 import type { Appointment, AvailabilitySetting, DefaultInfo } from '../types';
 
-type Tab = 'account' | 'availability' | 'appointments' | 'password';
+type Tab = 'account' | 'availability' | 'appointments' | 'wheel' | 'password';
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat('vi-VN', {
@@ -172,6 +173,7 @@ export default function AdminPage() {
     { key: 'account', label: 'Tài khoản mặc định', icon: '🏦' },
     { key: 'availability', label: 'Lịch làm việc', icon: '🗓️' },
     { key: 'appointments', label: 'Lịch hẹn', icon: '📅' },
+    { key: 'wheel', label: 'Vòng quay', icon: '🎯' },
     { key: 'password', label: 'Đổi mật khẩu', icon: '🔒' },
   ];
 
@@ -384,6 +386,8 @@ export default function AdminPage() {
               </button>
             </form>
           )}
+
+          {tab === 'wheel' && <WheelPrizeManager />}
 
           {tab === 'appointments' &&
             (appointmentsLoading ? (
