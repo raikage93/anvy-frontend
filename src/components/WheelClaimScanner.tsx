@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import api from '../services/api';
 import type { WheelClaim } from '../types';
+import WheelNoticeModal from './WheelNoticeModal';
 
 type Props = {
   onClaimUpdated?: () => void;
@@ -19,10 +20,12 @@ export default function WheelClaimScanner({ onClaimUpdated }: Props) {
   const scannerElementId = `wheel-claim-scanner-${useId().replace(/[:]/g, '')}`;
   const scannerRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const isVerifyingRef = useRef(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [shouldStartScanner, setShouldStartScanner] = useState(false);
   const [starting, setStarting] = useState(false);
   const [scannerError, setScannerError] = useState('');
+  const [notice, setNotice] = useState<{ title: string; message: string } | null>(null);
   const [claim, setClaim] = useState<WheelClaim | null>(null);
   const [tokenValue, setTokenValue] = useState('');
   const [processing, setProcessing] = useState(false);
@@ -114,9 +117,10 @@ export default function WheelClaimScanner({ onClaimUpdated }: Props) {
 
         const scanConfig = { fps: 10, qrbox: { width: 240, height: 240 } };
         const onSuccess = (decodedText: string) => {
-          if (processing) {
+          if (isVerifyingRef.current) {
             return;
           }
+          isVerifyingRef.current = true;
           void verifyToken(decodedText);
         };
 
@@ -182,22 +186,32 @@ export default function WheelClaimScanner({ onClaimUpdated }: Props) {
   const verifyToken = async (token: string) => {
     setProcessing(true);
     setScannerError('');
+    setNotice(null);
+
+    await stopScanner();
 
     try {
       const response = await api.post<VerifyResponse>('/admin/wheel-claims/verify', { token });
       setClaim(response.data.claim);
       setTokenValue(token);
-      await stopScanner();
     } catch (err: any) {
       setClaim(null);
-      setScannerError(err.response?.data?.error || 'Không thể xác minh QR này.');
+      const message = err.response?.data?.error || 'Mã QR này không hợp lệ hoặc không thuộc hệ thống.';
+      setScannerError(message);
+      setNotice({
+        title: 'QR không hợp lệ',
+        message,
+      });
     } finally {
+      isVerifyingRef.current = false;
       setProcessing(false);
     }
   };
 
   const openScanner = () => {
+    isVerifyingRef.current = false;
     setScannerError('');
+    setNotice(null);
     setClaim(null);
     setIsScannerOpen(true);
     setShouldStartScanner(true);
@@ -227,8 +241,14 @@ export default function WheelClaimScanner({ onClaimUpdated }: Props) {
   };
 
   const handleScanFromImage = async (file: File) => {
+    if (isVerifyingRef.current) {
+      return;
+    }
+
+    isVerifyingRef.current = true;
     setProcessing(true);
     setScannerError('');
+    setNotice(null);
     setClaim(null);
 
     try {
@@ -238,8 +258,14 @@ export default function WheelClaimScanner({ onClaimUpdated }: Props) {
       await scanner.clear();
       await verifyToken(decodedText);
     } catch (err: any) {
-      setScannerError(err?.message || 'Không thể đọc QR từ ảnh đã chọn.');
+      const message = err?.message || 'Không thể đọc QR từ ảnh đã chọn.';
+      setScannerError(message);
+      setNotice({
+        title: 'QR không hợp lệ',
+        message,
+      });
     } finally {
+      isVerifyingRef.current = false;
       setProcessing(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -249,6 +275,13 @@ export default function WheelClaimScanner({ onClaimUpdated }: Props) {
 
   return (
     <div className="rounded-[28px] border border-border bg-surface-light p-5">
+      <WheelNoticeModal
+        open={Boolean(notice)}
+        title={notice?.title || ''}
+        message={notice?.message || ''}
+        onClose={() => setNotice(null)}
+      />
+
       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent-light">Scan QR nhận quà</p>
       <h2 className="mt-3 text-2xl font-semibold text-text">Quét mã từ khách hàng để xác thực và trao thưởng</h2>
       <p className="mt-2 max-w-2xl text-sm leading-7 text-text-muted">
