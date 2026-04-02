@@ -178,9 +178,9 @@ export default function AdminPage() {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-40 border-b border-border/50 bg-surface/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-4xl flex-col gap-3 px-4 py-3 sm:h-14 sm:flex-row sm:items-center sm:justify-between sm:py-0">
+        <div className="mx-auto flex max-w-4xl flex-col gap-3 px-4 py-2 sm:flex-row sm:items-center sm:justify-between sm:py-2">
           <div className="flex min-w-0 items-center gap-2.5">
-            <BrandMark size="sm" />
+            <BrandMark size="sm" darkBg />
             <span className="font-bold text-text">Admin</span>
             <span className="max-w-[140px] truncate rounded-full bg-surface-lighter px-2 py-0.5 text-xs text-text-muted">
               {user?.username}

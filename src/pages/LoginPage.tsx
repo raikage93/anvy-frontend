@@ -30,9 +30,9 @@ export default function LoginPage() {
     <div className="min-h-dvh flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <BrandMark size="lg" className="mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-text">AnVy Clinic</h1>
-          <p className="text-text-muted text-sm mt-1">Đăng nhập để tiếp tục</p>
+          <BrandMark size="lg" className="mx-auto mb-6" darkBg />
+          <h1 className="text-2xl font-bold text-text">Đăng nhập quản trị</h1>
+          <p className="text-text-muted text-sm mt-1">Tiếp tục vào hệ thống AnVy Clinic</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

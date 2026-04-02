@@ -47,11 +47,11 @@ export default function QRGeneratorPage() {
     <div className="min-h-dvh flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-surface/80 backdrop-blur-xl border-b border-border/50">
-        <div className="max-w-lg mx-auto flex flex-col gap-3 px-4 py-3 sm:h-14 sm:flex-row sm:items-center sm:justify-between sm:py-0">
+        <div className="max-w-lg mx-auto flex flex-col gap-3 px-4 py-2 sm:flex-row sm:items-center sm:justify-between sm:py-2">
           <div className="flex items-center gap-2.5">
-            <BrandMark size="sm" />
+            <BrandMark size="sm" darkBg />
             <div>
-              <span className="font-bold text-text">AnVy Payment</span>
+              <span className="font-bold text-text">Thanh toán</span>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">

@@ -1,40 +1,63 @@
-import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import heroImage from '../assets/hero.png';
-import { useAuth } from '../hooks/useAuth';
-import BookingModal from '../components/BookingModal';
-import BrandMark from '../components/BrandMark';
+import { Link } from 'react-router-dom';
 import AvailabilityModal from '../components/AvailabilityModal';
+import PublicShell from '../components/PublicShell';
 import api from '../services/api';
 import type { AvailabilitySetting } from '../types';
 
-const services = [
+const heroImage =
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuAtTipZkFoB_YOIZALkyAmnt89SATnkULXVTmQRn7zolJr5P-7ZlsaR67uXs6BEY7Nq3SDqT09J3gHi3Lf22Gf1CkIrgVP0fJARCgEfHJPBDHUGbprVRCth0ujE4UH_9Wak4LfsQ1IPbxbnPy6Bu5Xh6LeX1rMdznZbxnBa4oimLLhsV9hE15ZxQzp3H5KXjhAIR2cqxj8GgV2vVusDnCGbC5WC9um2q-iMD7lsO_owygwIPDM7i8qTRgOMHvn2nD3YNTvqExhlm_cA';
+
+const doctorImage =
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuDOblpVCI8mU9co6y_dcGmnuEhn_juLAzhQVyHEnh77MCN1wgu_yvaDeGtEEVE4Pt-9g3MXawyxVSlGZ3bJuXu-QBQRMMVPWnxWln4nmuN_5A6GwxflKJPl8Dk7L4_Euz_i1qsZhWmR0HZI46a8lH8Tv0zO_DOZWCek13a0Jyv6GKUTqc25aAcdgT1rSJjfDei4HgWCZ6fCsHyf-vPTCVJx6HRwtY2sxFl2l5BRFllPuYfl-9sSj1leAjBjgJ7mvmhkLUc6XTAah3Uh';
+
+const serviceCards = [
   {
-    title: 'Khám và tư vấn',
-    description: 'Đánh giá tình trạng hiện tại, tư vấn hướng điều trị rõ ràng và phù hợp.',
+    title: 'Đo mắt kỹ thuật số',
+    description:
+      'Ứng dụng thiết bị khúc xạ thế hệ mới để đo chính xác, nhanh và giảm sai số khi kiểm tra thị lực.',
   },
   {
-    title: 'Theo dõi lịch hẹn',
-    description: 'Đặt lịch trước để giảm thời gian chờ và chủ động sắp xếp khung giờ.',
+    title: 'Cắt kính kỹ thuật',
+    description:
+      'Gia công tròng kính tối ưu theo nhu cầu nhìn xa, nhìn gần, làm việc màn hình hoặc lái xe ban đêm.',
   },
   {
-    title: 'Chăm sóc sau khám',
-    description: 'Nhận hướng dẫn sau thăm khám và kế hoạch tái khám khi cần thiết.',
+    title: 'Tư vấn gọng kính',
+    description:
+      'Phối hợp yếu tố thẩm mỹ, khuôn mặt và độ dày tròng để chọn gọng kính vừa đẹp vừa dễ đeo lâu dài.',
   },
 ];
 
-const highlights = [
-  'Khung giờ linh hoạt cho khách đặt lịch trước',
-  'Quy trình tiếp nhận ngắn gọn, dễ thao tác trên điện thoại',
-  'Thông tin lịch hẹn được gửi trực tiếp về hệ thống phòng khám',
+const partners = ['ESSILOR', 'ZEISS', 'Ray·Ban', 'Vogue', 'GUCCI'];
+
+const doctorFeatures = [
+  'Khám sàng lọc bệnh lý mắt toàn diện',
+  'Tư vấn kiểm soát cận thị cho trẻ em',
+  'Theo dõi sức khỏe mắt định kỳ theo hồ sơ',
+];
+
+const testimonials = [
+  {
+    name: 'Ngọc Linh',
+    quote:
+      'Quy trình khám rất nhẹ nhàng, bác sĩ giải thích kỹ và phần đặt lịch online giúp mình chủ động thời gian hơn hẳn.',
+  },
+  {
+    name: 'Khánh Duy',
+    quote:
+      'Máy móc hiện đại, không gian sáng và chuyên nghiệp. Mình đặt lịch trước nên tới nơi gần như được tiếp nhận ngay.',
+  },
+  {
+    name: 'Minh Anh',
+    quote:
+      'Tư vấn tròng kính rất kỹ, không bị bán hàng quá mức. Mình thích nhất là website cho xem lịch làm việc rất rõ ràng.',
+  },
 ];
 
 export default function HomePage() {
-  const { user } = useAuth();
-  const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
   const [availability, setAvailability] = useState<AvailabilitySetting[]>([]);
-  const [availabilityLoading, setAvailabilityLoading] = useState(true);
+  const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
 
   useEffect(() => {
     const fetchAvailability = async () => {
@@ -43,8 +66,6 @@ export default function HomePage() {
         setAvailability(res.data);
       } catch {
         setAvailability([]);
-      } finally {
-        setAvailabilityLoading(false);
       }
     };
 
@@ -52,252 +73,212 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-dvh bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.18),_transparent_35%),linear-gradient(180deg,_#020617_0%,_#0f172a_48%,_#020617_100%)] text-text">
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/65 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <div className="flex min-w-0 items-center gap-3">
-            <BrandMark size="md" />
-            <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-accent-light sm:text-xs sm:tracking-[0.28em]">AnVy Clinic</p>
-              <h1 className="text-base font-semibold text-white sm:text-lg">Phòng khám thông tin và đặt lịch</h1>
-            </div>
-          </div>
-
-          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
-            <Link
-              to="/payment"
-              className="inline-flex rounded-full border border-white/10 px-3.5 py-2 text-sm text-text-muted transition hover:border-white/25 hover:text-white sm:px-4"
-            >
-              Thanh toán
-            </Link>
-            {user?.role === 'admin' ? (
-              <Link
-                to="/admin"
-                className="inline-flex rounded-full border border-white/10 px-3.5 py-2 text-sm text-text-muted transition hover:border-white/25 hover:text-white sm:px-4"
-              >
-                Quản trị
-              </Link>
-            ) : (
-              <Link
-                to="/login"
-                className="inline-flex rounded-full border border-white/10 px-3.5 py-2 text-sm text-text-muted transition hover:border-white/25 hover:text-white sm:px-4"
-              >
-                Đăng nhập
-              </Link>
-            )}
-            <button
-              type="button"
-              onClick={() => setIsBookingOpen(true)}
-              className="flex-1 rounded-full bg-linear-to-r from-primary to-accent px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-900/30 transition hover:opacity-95 sm:flex-none"
-            >
-              Đặt lịch ngay
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main>
-        <section className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:py-20">
+    <PublicShell active="home">
+      <section className="overflow-hidden bg-[#f2f4f6]">
+        <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8 lg:py-24">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent-light sm:text-sm sm:tracking-[0.34em]">
-              Chăm sóc gần gũi, đặt lịch nhanh gọn
-            </p>
-            <h2 className="mt-4 max-w-2xl text-3xl font-black leading-tight text-white sm:mt-5 sm:text-5xl">
-              Trang chủ mới cho phòng khám, tập trung vào thông tin và hẹn lịch khám.
-            </h2>
-            <p className="mt-5 max-w-2xl text-[15px] leading-7 text-slate-300 sm:mt-6 sm:text-lg sm:leading-8">
-              Người dùng có thể xem nhanh thông tin phòng khám, quy trình tiếp nhận và đặt lịch ngay trên một modal
-              gọn nhẹ. Luồng thanh toán QR được giữ lại ở trang riêng để vẫn dùng khi cần.
+            <span className="mb-5 block text-xs font-bold uppercase tracking-[0.32em] text-[#00478d]">
+              Clinical Excellence & Style
+            </span>
+            <h1 className="max-w-3xl font-['Manrope'] text-5xl font-extrabold leading-[1.04] tracking-[-0.04em] text-slate-900 sm:text-6xl lg:text-7xl">
+              Chăm sóc đôi mắt của bạn với sự <span className="text-[#00478d]">tận tâm</span> và{' '}
+              <span className="text-[#775a19]">chuyên nghiệp</span>
+            </h1>
+            <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-600">
+              Trải nghiệm hệ thống chăm sóc mắt chuẩn y khoa với công nghệ đo khám hiện đại, đội ngũ bác sĩ giàu kinh
+              nghiệm và quy trình đặt lịch online gọn gàng cho mọi thiết bị.
             </p>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <button
-                type="button"
-                onClick={() => setIsBookingOpen(true)}
-                className="w-full rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-200 sm:w-auto"
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <Link
+                to="/booking"
+                className="rounded-full bg-[linear-gradient(135deg,#00478d_0%,#005eb8_100%)] px-7 py-3.5 text-center font-['Manrope'] text-base font-extrabold text-white shadow-lg shadow-blue-900/20 transition hover:opacity-95"
               >
-                Mở form đặt lịch
-              </button>
+                Đặt lịch khám ngay
+              </Link>
+              <Link
+                to="/eyewear"
+                className="rounded-full bg-[#ffdea5] px-7 py-3.5 text-center font-['Manrope'] text-base font-extrabold text-[#261900] transition hover:brightness-95"
+              >
+                Xem bộ sưu tập kính
+              </Link>
               <button
                 type="button"
                 onClick={() => setIsAvailabilityOpen(true)}
-                className="w-full rounded-full border border-cyan-300/20 bg-cyan-300/8 px-6 py-3 text-sm font-semibold text-cyan-100 transition hover:border-cyan-300/35 hover:bg-cyan-300/12 sm:w-auto"
+                className="rounded-full border border-slate-300 bg-white px-7 py-3.5 text-center font-['Manrope'] text-base font-bold text-slate-700 transition hover:border-[#00478d] hover:text-[#00478d]"
               >
                 Xem lịch trong tuần
               </button>
-              <Link
-                to="/payment"
-                className="w-full rounded-full border border-white/15 px-6 py-3 text-center text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/5 sm:w-auto"
-              >
-                Đi tới trang thanh toán
-              </Link>
-            </div>
-
-            <div className="mt-10 grid gap-3 sm:grid-cols-3">
-              {highlights.map((item) => (
-                <div key={item} className="rounded-3xl border border-white/10 bg-white/5 p-4 text-sm leading-6 text-slate-300">
-                  {item}
-                </div>
-              ))}
             </div>
           </div>
 
           <div className="relative">
-            <div className="absolute -left-2 -top-2 h-24 w-24 rounded-full bg-cyan-400/20 blur-3xl sm:-left-4 sm:-top-4 sm:h-32 sm:w-32" />
-            <div className="absolute -bottom-2 -right-2 h-28 w-28 rounded-full bg-blue-500/20 blur-3xl sm:-bottom-4 sm:-right-4 sm:h-40 sm:w-40" />
-            <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/5 p-4 shadow-2xl shadow-cyan-950/20">
-              <img
-                src={heroImage}
-                alt="AnVy Clinic"
-                className="h-[320px] w-full rounded-[24px] object-cover sm:h-[440px]"
-              />
-              <div className="mt-4 rounded-[28px] border border-white/10 bg-slate-950/75 p-4 backdrop-blur sm:absolute sm:inset-x-8 sm:bottom-8 sm:mt-0 sm:p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-accent-light sm:text-xs sm:tracking-[0.28em]">Tiếp nhận thông minh</p>
-                <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                  <div>
-                    <p className="text-2xl font-black text-white sm:text-3xl">Đặt lịch trong ít phút</p>
-                    <p className="mt-2 text-sm leading-6 text-slate-300 sm:max-w-md">
-                      Chọn khung giờ khám, để lại số điện thoại và ghi chú nếu cần tư vấn trước.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsBookingOpen(true)}
-                    className="w-full rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-200 sm:w-auto"
-                  >
-                    Bắt đầu
-                  </button>
-                </div>
-              </div>
+            <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-[#005eb8]/10 blur-3xl" />
+            <div className="absolute -bottom-8 -right-8 h-44 w-44 rounded-full bg-[#ffdea5]/35 blur-3xl" />
+            <div className="relative overflow-hidden rounded-[32px] shadow-2xl shadow-slate-900/10">
+              <img src={heroImage} alt="AnVy Clinic" className="aspect-[4/5] w-full object-cover" />
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:pb-18">
-          <div className="grid gap-4 md:grid-cols-3">
-            {services.map((service, index) => (
+      <section className="bg-white py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto mb-14 max-w-2xl text-center">
+            <h2 className="font-['Manrope'] text-4xl font-extrabold tracking-[-0.03em] text-slate-900">Dịch vụ nổi bật</h2>
+            <p className="mt-4 text-base leading-7 text-slate-600">
+              Trải nghiệm quy trình chăm sóc mắt chuẩn y khoa với thiết bị hiện đại và đội ngũ tư vấn chuyên sâu.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {serviceCards.map((service, index) => (
               <article
                 key={service.title}
-                className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-lg shadow-slate-950/15"
+                className="rounded-[28px] border border-slate-200 bg-[#f7f9fb] p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
               >
-                <p className="text-sm font-semibold text-accent-light">0{index + 1}</p>
-                <h3 className="mt-4 text-2xl font-semibold text-white">{service.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-slate-300">{service.description}</p>
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#d6e3ff] font-['Manrope'] text-lg font-extrabold text-[#00478d]">
+                  0{index + 1}
+                </div>
+                <h3 className="mt-6 font-['Manrope'] text-2xl font-extrabold tracking-tight text-slate-900">
+                  {service.title}
+                </h3>
+                <p className="mt-4 text-sm leading-7 text-slate-600">{service.description}</p>
+                <Link to="/services" className="mt-6 inline-flex text-sm font-bold text-[#00478d] transition hover:text-[#005eb8]">
+                  Tìm hiểu thêm
+                </Link>
               </article>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6">
-          <div className="rounded-[30px] border border-white/10 bg-slate-950/65 p-5 sm:p-7">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.26em] text-accent-light">Lịch làm việc phòng khám</p>
-                <h3 className="mt-3 text-2xl font-black text-white sm:text-3xl">Khung giờ user được phép chọn luôn đi theo thiết lập của admin</h3>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300">
-                  Khi admin đóng một ngày hoặc đổi giờ làm việc, modal đặt lịch sẽ cập nhật theo ngay. User sẽ không thể chọn ngoài lịch này.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsAvailabilityOpen(true)}
-                className="rounded-full border border-white/10 px-5 py-2.5 text-sm font-medium text-white transition hover:border-white/25 hover:bg-white/5"
-              >
-                Xem lịch trong tuần
-              </button>
-            </div>
-
-            <div className="mt-6">
-              {availabilityLoading ? (
-                <div className="flex justify-center py-10">
-                  <div className="h-8 w-8 animate-spin rounded-full border-3 border-cyan-400/20 border-t-cyan-300" />
-                </div>
-              ) : (
-                <div className="rounded-3xl border border-white/10 bg-white/5 px-5 py-4 text-sm leading-7 text-slate-300">
-                  Bấm vào <span className="font-semibold text-white">“Xem lịch trong tuần”</span> để mở modal hiển thị lịch khám khả dụng của phòng khám.
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-
-        <section className="mx-auto grid max-w-6xl gap-6 px-4 pb-16 sm:px-6 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="rounded-[30px] border border-white/10 bg-slate-950/65 p-5 sm:p-7">
-            <p className="text-xs font-semibold uppercase tracking-[0.26em] text-accent-light">Quy trình tiếp nhận</p>
-            <div className="mt-6 space-y-6">
-              <div>
-                <p className="text-lg font-semibold text-white">1. Gửi yêu cầu đặt lịch</p>
-                <p className="mt-2 text-sm leading-7 text-slate-300">
-                  Bạn nhập số điện thoại, chọn thời gian mong muốn và thêm ghi chú trong modal đặt lịch.
-                </p>
-              </div>
-              <div>
-                <p className="text-lg font-semibold text-white">2. Phòng khám xác nhận</p>
-                <p className="mt-2 text-sm leading-7 text-slate-300">
-                  Thông tin sẽ được đẩy vào hệ thống nội bộ để nhân viên liên hệ xác nhận lịch khám.
-                </p>
-              </div>
-              <div>
-                <p className="text-lg font-semibold text-white">3. Tiếp nhận tại phòng khám</p>
-                <p className="mt-2 text-sm leading-7 text-slate-300">
-                  Quy trình tiếp nhận gọn gàng hơn vì khung giờ và thông tin cơ bản đã được ghi nhận từ trước.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-[30px] border border-cyan-400/15 bg-linear-to-br from-cyan-400/10 via-white/5 to-primary/10 p-5 sm:p-7">
-            <p className="text-xs font-semibold uppercase tracking-[0.26em] text-accent-light">Mối quan tâm chính</p>
-            <h3 className="mt-4 text-2xl font-black text-white sm:text-3xl">Một trang chủ đúng vai trò của phòng khám</h3>
-            <p className="mt-4 max-w-2xl text-sm leading-8 text-slate-200">
-              Thay vì đưa người dùng vào luồng chuyển khoản ngay lập tức, trang chủ mới ưu tiên thông tin, tạo niềm tin và
-              dẫn họ vào hành động đặt lịch. Luồng thanh toán vẫn tồn tại ở trang riêng khi cần giao dịch.
-            </p>
-
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-5">
-                <p className="text-4xl font-black text-white">24/7</p>
-                <p className="mt-2 text-sm leading-6 text-slate-300">Có thể gửi yêu cầu đặt lịch bất cứ lúc nào trên website.</p>
-              </div>
-              <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-5">
-                <p className="text-4xl font-black text-white">1 modal</p>
-                <p className="mt-2 text-sm leading-6 text-slate-300">Nhanh gọn, dùng 3 trường cần thiết: số điện thoại, lịch hẹn, ghi chú.</p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsBookingOpen(true)}
-              className="mt-8 inline-flex w-full justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-200 sm:w-auto"
-            >
-              Thử đặt lịch ngay
-            </button>
-          </div>
-        </section>
-      </main>
-
-      <footer className="border-t border-white/10 bg-slate-950/60">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <p>AnVy Clinic · Trang thông tin phòng khám và đặt lịch khám</p>
-          <div className="flex items-center gap-4">
-            <Link to="/payment" className="transition hover:text-white">Thanh toán QR</Link>
-            <button type="button" onClick={() => setIsBookingOpen(true)} className="transition hover:text-white">
-              Đặt lịch
-            </button>
+      <section className="bg-[#f2f4f6] py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <p className="mb-10 text-center text-xs font-bold uppercase tracking-[0.34em] text-slate-500">Đối tác chiến lược</p>
+          <div className="flex flex-wrap items-center justify-center gap-8 text-xl font-['Manrope'] font-black tracking-tight text-slate-500 sm:gap-14 sm:text-2xl">
+            {partners.map((partner) => (
+              <span key={partner}>{partner}</span>
+            ))}
           </div>
         </div>
-      </footer>
+      </section>
 
-      <BookingModal
-        isOpen={isBookingOpen}
-        onClose={() => setIsBookingOpen(false)}
-        availability={availability}
-      />
+      <section className="bg-white py-24">
+        <div className="mx-auto grid max-w-7xl gap-14 px-4 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:px-8">
+          <div className="relative">
+            <div className="overflow-hidden rounded-[32px] shadow-2xl shadow-slate-900/10">
+              <img src={doctorImage} alt="Đội ngũ bác sĩ AnVy Clinic" className="aspect-square w-full object-cover" />
+            </div>
+            <div className="absolute -bottom-8 right-6 max-w-[240px] rounded-[28px] border border-slate-200 bg-white p-6 shadow-xl">
+              <p className="font-['Manrope'] text-4xl font-extrabold text-[#00478d]">15+</p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Năm kinh nghiệm trong lĩnh vực khúc xạ nhãn khoa và chăm sóc thị lực chuyên sâu.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <h2 className="font-['Manrope'] text-4xl font-extrabold leading-tight tracking-[-0.03em] text-slate-900 sm:text-5xl">
+              Đội ngũ bác sĩ tâm huyết & giàu kinh nghiệm
+            </h2>
+            <p className="mt-6 text-lg leading-8 text-slate-600">
+              Mỗi buổi khám đều được thực hiện với sự tỉ mỉ, giải thích rõ ràng và ưu tiên tối đa trải nghiệm của bệnh
+              nhân, từ trẻ nhỏ tới người lớn tuổi.
+            </p>
+
+            <div className="mt-8 space-y-4">
+              {doctorFeatures.map((feature) => (
+                <div key={feature} className="flex items-start gap-3">
+                  <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#d6e3ff] text-xs font-bold text-[#00478d]">
+                    ✓
+                  </div>
+                  <p className="text-base font-medium text-slate-800">{feature}</p>
+                </div>
+              ))}
+            </div>
+
+            <Link
+              to="/services"
+              className="mt-10 inline-flex rounded-full border-2 border-[#00478d] px-7 py-3.5 font-['Manrope'] text-base font-extrabold text-[#00478d] transition hover:bg-[#00478d] hover:text-white"
+            >
+              Tìm hiểu về đội ngũ
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[#f2f4f6] py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-14 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <h2 className="font-['Manrope'] text-4xl font-extrabold tracking-[-0.03em] text-slate-900">
+                Khách hàng nói gì về chúng tôi
+              </h2>
+              <p className="mt-4 text-base leading-7 text-slate-600">
+                Sự hài lòng của khách hàng là thước đo quan trọng nhất cho chất lượng dịch vụ tại AnVy Clinic.
+              </p>
+            </div>
+            <Link to="/booking" className="text-sm font-bold text-[#00478d] transition hover:text-[#005eb8]">
+              Đặt lịch trải nghiệm
+            </Link>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            {testimonials.map((item) => (
+              <article key={item.name} className="rounded-[28px] bg-white p-8 shadow-sm">
+                <div className="mb-5 flex gap-1 text-[#e9c176]">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <span key={`${item.name}-${index}`}>★</span>
+                  ))}
+                </div>
+                <p className="text-base leading-8 text-slate-700">“{item.quote}”</p>
+                <p className="mt-6 font-['Manrope'] text-lg font-extrabold text-slate-900">{item.name}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="rounded-[36px] bg-[linear-gradient(135deg,#00478d_0%,#005eb8_100%)] px-6 py-12 text-white shadow-2xl shadow-blue-900/20 sm:px-10">
+            <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+              <div className="max-w-3xl">
+                <p className="text-xs font-bold uppercase tracking-[0.34em] text-blue-100">Ready to book</p>
+                <h2 className="mt-4 font-['Manrope'] text-4xl font-extrabold leading-tight tracking-[-0.03em] sm:text-5xl">
+                  Đặt lịch online để được tiếp nhận nhanh hơn tại phòng khám
+                </h2>
+                <p className="mt-4 text-base leading-8 text-blue-50/90">
+                  Chọn ngày phù hợp, xem lịch tuần và gửi yêu cầu đặt khám trực tiếp tới hệ thống của AnVy Clinic.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link
+                  to="/booking"
+                  className="rounded-full bg-white px-7 py-3.5 text-center font-['Manrope'] text-base font-extrabold text-[#00478d] transition hover:bg-slate-100"
+                >
+                  Đi tới trang đặt lịch
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setIsAvailabilityOpen(true)}
+                  className="rounded-full border border-white/25 px-7 py-3.5 text-center font-['Manrope'] text-base font-extrabold text-white transition hover:bg-white/10"
+                >
+                  Xem lịch tuần này
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <AvailabilityModal
         isOpen={isAvailabilityOpen}
         onClose={() => setIsAvailabilityOpen(false)}
         settings={availability}
       />
-    </div>
+    </PublicShell>
   );
 }
