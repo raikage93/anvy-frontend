@@ -21,23 +21,23 @@ export default function AvailabilitySummary({ settings, compact = false }: Props
           key={setting.weekday}
           className={`rounded-2xl border px-4 py-3 ${
             setting.enabled
-              ? 'border-cyan-400/20 bg-cyan-400/8'
-              : 'border-white/10 bg-white/5'
+              ? 'border-blue-200 bg-blue-50/60'
+              : 'border-slate-200 bg-slate-100/70'
           }`}
         >
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-white">{setting.label}</p>
+            <p className="text-sm font-semibold text-slate-900">{setting.label}</p>
             <span
               className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${
                 setting.enabled
-                  ? 'bg-cyan-400/12 text-cyan-200'
-                  : 'bg-white/8 text-slate-400'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-slate-200 text-slate-600'
               }`}
             >
               {setting.enabled ? 'Mở lịch' : 'Đóng'}
             </span>
           </div>
-          <p className="mt-2 text-sm text-slate-300">{formatRange(setting)}</p>
+          <p className="mt-2 text-sm text-slate-600">{formatRange(setting)}</p>
         </div>
       ))}
     </div>
