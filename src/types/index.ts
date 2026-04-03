@@ -65,6 +65,18 @@ export interface WheelSpin {
   segment_index?: number;
 }
 
+export interface WheelReward {
+  id: number;
+  prize_id: number | null;
+  prize_name: string;
+  prize_description: string;
+  prize_color: string;
+  phone?: string | null;
+  spin_date?: string | null;
+  created_at: string;
+  claim?: WheelClaim | null;
+}
+
 export interface WheelSettings {
   max_daily_spins_per_phone: number;
   updated_at?: string;
