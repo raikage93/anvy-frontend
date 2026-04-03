@@ -20,6 +20,7 @@ type SpinResponse = {
 };
 
 const WHEEL_PHONE_STORAGE_KEY = 'anvy_wheel_phone';
+const SPIN_DURATION_MS = 6200;
 
 const perks = [
   'Kết quả quay được backend xử lý trực tiếp theo tồn kho thực tế.',
@@ -29,7 +30,11 @@ const perks = [
 
 function buildTargetRotation(currentRotation: number, segmentIndex: number, totalSegments: number) {
   const segmentAngle = 360 / totalSegments;
-  const targetAngle = (360 - (segmentIndex * segmentAngle + segmentAngle / 2)) % 360;
+  const centerAngle = segmentIndex * segmentAngle + segmentAngle / 2;
+  const edgePadding = Math.min(segmentAngle * 0.22, 10);
+  const randomRange = Math.max(segmentAngle / 2 - edgePadding, 0);
+  const randomOffset = randomRange > 0 ? (Math.random() * 2 - 1) * randomRange : 0;
+  const targetAngle = (360 - (centerAngle + randomOffset)) % 360;
   const currentNormalized = ((currentRotation % 360) + 360) % 360;
   let delta = targetAngle - currentNormalized;
 
@@ -37,7 +42,7 @@ function buildTargetRotation(currentRotation: number, segmentIndex: number, tota
     delta += 360;
   }
 
-  return currentRotation + 6 * 360 + delta;
+  return currentRotation + 8 * 360 + delta;
 }
 
 function wait(ms: number) {
@@ -103,7 +108,7 @@ export default function LuckyWheelPage() {
       window.setTimeout(() => {
         setResult(payload);
         setIsSpinning(false);
-      }, 4700);
+      }, SPIN_DURATION_MS + 120);
     } catch (err: any) {
       const message = err.response?.data?.error || 'Không thể quay thưởng lúc này.';
       setError(message);
@@ -269,6 +274,7 @@ export default function LuckyWheelPage() {
                 prizes={prizes}
                 rotation={rotation}
                 isSpinning={isSpinning}
+                spinDurationMs={SPIN_DURATION_MS}
                 onSpin={handleSpinClick}
                 spinDisabled={!canSpin}
                 buttonLabel="Quay"

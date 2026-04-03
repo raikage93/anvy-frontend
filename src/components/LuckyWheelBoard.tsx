@@ -4,6 +4,7 @@ type Props = {
   prizes: WheelPrize[];
   rotation: number;
   isSpinning: boolean;
+  spinDurationMs?: number;
   onSpin?: () => void;
   spinDisabled?: boolean;
   buttonLabel?: string;
@@ -66,6 +67,7 @@ export default function LuckyWheelBoard({
   prizes,
   rotation,
   isSpinning,
+  spinDurationMs = 4600,
   onSpin,
   spinDisabled = false,
   buttonLabel = 'Quay ngay',
@@ -125,7 +127,7 @@ export default function LuckyWheelBoard({
         <div className="relative aspect-square">
           <div
             className="absolute inset-0 rounded-full transition-transform duration-[4600ms] ease-[cubic-bezier(0.12,0.8,0.22,1)]"
-            style={{ transform: `rotate(${rotation}deg)` }}
+            style={{ transform: `rotate(${rotation}deg)`, transitionDuration: `${spinDurationMs}ms` }}
           >
             <svg viewBox="0 0 100 100" className="h-full w-full drop-shadow-[0_30px_45px_rgba(15,23,42,0.18)]">
               <circle cx="50" cy="50" r="48" fill="#fff7ed" />
