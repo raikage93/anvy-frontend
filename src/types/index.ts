@@ -87,4 +87,12 @@ export interface WheelClaim {
   qr_payload?: string;
 }
 
+export interface WheelRecentWinner {
+  id: number;
+  phone: string;
+  prize_name: string;
+  prize_color: string;
+  redeemed_at: string;
+}
+
 export const STORAGE_KEY = 'anvy_default_info';
