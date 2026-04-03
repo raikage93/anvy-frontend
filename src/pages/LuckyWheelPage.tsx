@@ -23,7 +23,7 @@ type ClaimResponse = {
 };
 
 const WHEEL_PHONE_STORAGE_KEY = 'anvy_wheel_phone';
-const SPIN_DURATION_MS = 6200;
+const SPIN_DURATION_MS = 10000;
 
 function buildTargetRotation(currentRotation: number, segmentIndex: number, totalSegments: number) {
   const segmentAngle = 360 / totalSegments;
