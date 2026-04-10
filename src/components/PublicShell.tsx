@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import BrandMark from './BrandMark';
 
-type PublicPageKey = 'home' | 'services' | 'eyewear' | 'booking' | 'wheel';
+type PublicPageKey = 'home' | 'services' | 'eyewear' | 'records' | 'booking' | 'wheel';
 
 type Props = {
   active: PublicPageKey;
@@ -15,6 +15,7 @@ const navItems: Array<{ key: PublicPageKey; label: string; to: string }> = [
   { key: 'services', label: 'Dịch vụ', to: '/services' },
   { key: 'eyewear', label: 'Gọng kính', to: '/eyewear' },
   { key: 'wheel', label: 'Vòng quay', to: '/lucky-wheel' },
+  { key: 'records', label: 'Kết quả khám', to: '/patient-records' },
   { key: 'booking', label: 'Đặt lịch', to: '/booking' },
 ];
 
@@ -28,8 +29,8 @@ export default function PublicShell({ active, children }: Props) {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-dvh bg-[#f7f9fb] text-[#191c1e]">
-      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl">
+    <div className="min-h-dvh overflow-x-hidden bg-[#f7f9fb] pb-[env(safe-area-inset-bottom)] text-[#191c1e]">
+      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
         <nav className="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4">
             <Link to="/" className="flex min-w-0 items-center">

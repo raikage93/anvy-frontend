@@ -6,6 +6,7 @@ import EyewearPage from './pages/EyewearPage';
 import BookingPage from './pages/BookingPage';
 import LuckyWheelPage from './pages/LuckyWheelPage';
 import QRGeneratorPage from './pages/QRGeneratorPage';
+import PatientPortalPage from './pages/PatientPortalPage';
 import LoginPage from './pages/LoginPage';
 import AdminPage from './pages/AdminPage';
 
@@ -23,6 +24,7 @@ function AppRoutes() {
       <Route path="/services" element={<ServicesPage />} />
       <Route path="/eyewear" element={<EyewearPage />} />
       <Route path="/lucky-wheel" element={<LuckyWheelPage />} />
+      <Route path="/patient-records" element={<PatientPortalPage />} />
       <Route path="/booking" element={<BookingPage />} />
       <Route path="/payment" element={<QRGeneratorPage />} />
       <Route path="/login" element={<LoginPage />} />

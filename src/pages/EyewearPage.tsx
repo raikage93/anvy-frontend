@@ -1,40 +1,70 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PublicShell from '../components/PublicShell';
+import api from '../services/api';
+import type { EyewearProduct, EyewearSearchResponse } from '../types';
 
-const products = [
-  {
-    label: 'Lumina Signature',
-    name: 'Aura Titanium Black',
-    price: '3.450.000đ',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCNGpBpaQdW5XGNht5WNRb4Rfa76y-1Ysh_dgbFWbrwkqZCkrDadd3ui2xOzv0JYjAk_edhKbjCy1xHN0lcOgpmML4zjM-qbZbf3-ZzhTUJSlQg8CeD-iWxZKH9Hxlzd2q1SM6XSUgaU2wI56OAVE9N7xExYuhChQVMMUnrLxpB4vB2Ja2Lm5ODEDfVx764KVK5_A6oIAyav-HByNFrECGFDfn46nb2Krz_JxVPQyAEvoqkq0Sc57xmOuASFaDkyA9NAFWMfVUQwOov',
-  },
-  {
-    label: 'Iconic Collection',
-    name: 'Stellar Gold Aviator',
-    price: '2.890.000đ',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDX0SR0XYZtDklU6xeunvlqnlAIvEGR2N5QabHzUfDLMrMfmQUZCh4DSuCBlQbqqDhC7IBcYO8Z8WirADwHz3KSUYuz3ZxzMgVNtdVk2YVYoEfHjO2T7h1zFslYAq1lPPVRsojdQH616zkdZWIGp8ueXUGY4A9oCsBWua0BRYx9IDLSTuI9leTA9xINffhrNzZpQ2BdilmT6zozYkcLJRtuygoMk67mYrzGjkwTdn2el-u9Cy__kY1rx4C_BXYE74FvK4AOuvDSVfXe',
-  },
-  {
-    label: 'Heritage Series',
-    name: 'Vintage Tortoise Round',
-    price: '1.950.000đ',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuBhTAmTVzVrpNS64jTeM_MTPLWdfQAPxzOdZ0LRW8VWJsN-EKPd7ltanG578GKtc5_ybhx_oU7X3GGtzdeJdx1LdZZIA1ZNWmDS8JPwGYQ34ofqomexyw2QmNKbF8sGtLXX20DB80HiKoIiIqhXLbszvjt2awE_pWEFl2RnNxkF6jNMDkE5BKTataKYBsMAgDawE1o4LtQb0kkVh6jOtPZ87-vZ5FbEkeW7ebRB1GS6hSOu2KKvycAxhckdXg3cEQBxXZ7xz7ea1Fdi',
-  },
-  {
-    label: 'Modernist',
-    name: 'Crystal Clarity Rect',
-    price: '2.150.000đ',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuBMeRB7dK7AIsQKzbPnC9W4MwRrNTTk_4s4MV7nFgT9K9O23t1lgoFDWk7tK6cL6VCF5cKtwnKt1rEY-_Jdv9gQhxpudmu-YAlgxzb7wA5-nAFkp6vKpyi3gpQEbgxP8xE3L_TEzftXX3rBsTC0kBQztJQPZWftZfgvGiPwMB8GG7sqIrUB06jwqQ0-CklPbhY4C_ouLUFtcnC5MjRRzuoR1eK3TV3VTQN70MfQ4VCnaxeQ_QUR9Irjg7bBqqz9qfRq4Q139kdTq0Id',
-  },
-];
-
-const filterPills = ['Nhựa Acetate', 'Titanium', 'Hợp kim'];
+function formatCurrency(value: number) {
+  return `${new Intl.NumberFormat('vi-VN').format(value)}đ`;
+}
 
 export default function EyewearPage() {
+  const [products, setProducts] = useState<EyewearProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState('');
+  const [keyword, setKeyword] = useState('');
+  const [brand, setBrand] = useState('');
+  const [frameType, setFrameType] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [facets, setFacets] = useState<EyewearSearchResponse['facets']>({
+    brands: [],
+    frame_types: [],
+    price: { min: 0, max: 0 },
+  });
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setKeyword(query.trim());
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, [query]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const response = await api.get<EyewearSearchResponse>('/eyewear-products/search', {
+          params: {
+            q: keyword || undefined,
+            brand: brand || undefined,
+            frame_type: frameType || undefined,
+            min_price: minPrice || undefined,
+            max_price: maxPrice || undefined,
+            page: 1,
+            size: 60,
+          },
+        });
+
+        setProducts(response.data.items || []);
+        setFacets(
+          response.data.facets || {
+            brands: [],
+            frame_types: [],
+            price: { min: 0, max: 0 },
+          }
+        );
+      } catch {
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchProducts();
+  }, [brand, frameType, keyword, maxPrice, minPrice]);
+
   return (
     <PublicShell active="eyewear">
       <section className="bg-white">
@@ -46,8 +76,7 @@ export default function EyewearPage() {
               <span className="text-[#00478d]">Gọng kính & Tròng kính</span>
             </h1>
             <p className="max-w-xl text-lg leading-8 text-slate-600">
-              Khám phá sự giao thoa giữa nghệ thuật chế tác và công nghệ nhãn khoa hiện đại. Mỗi thiết kế được chọn để
-              vừa đẹp khi đeo, vừa tối ưu cho trải nghiệm nhìn mỗi ngày.
+              Tìm nhanh sản phẩm theo brand, loại gọng và khoảng giá ngay tại một màn hình.
             </p>
             <Link
               to="/booking"
@@ -75,74 +104,130 @@ export default function EyewearPage() {
             <div className="rounded-[28px] bg-white p-8 shadow-sm">
               <h2 className="font-['Manrope'] text-xl font-extrabold text-slate-900">Bộ lọc</h2>
 
-              <div className="mt-8">
-                <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-500">Kiểu dáng</p>
-                <div className="mt-4 space-y-3 text-sm text-slate-700">
-                  {['Tròn', 'Vuông', 'Phi công', 'Mắt mèo'].map((shape) => (
-                    <label key={shape} className="flex items-center gap-3">
-                      <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-[#00478d] focus:ring-[#00478d]" />
-                      <span>{shape}</span>
-                    </label>
-                  ))}
-                </div>
+              <div className="mt-6">
+                <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-500">Tìm kiếm</p>
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Tên sản phẩm, brand, mô tả..."
+                  className="mt-3 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-[#00478d] focus:ring-2 focus:ring-[#00478d]/20"
+                />
               </div>
 
               <div className="mt-8">
-                <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-500">Chất liệu</p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {filterPills.map((pill) => (
-                    <button
-                      key={pill}
-                      type="button"
-                      className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-[#00478d] hover:text-[#00478d]"
-                    >
-                      {pill}
-                    </button>
+                <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-500">Brand</p>
+                <select
+                  value={brand}
+                  onChange={(event) => setBrand(event.target.value)}
+                  className="mt-3 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-[#00478d] focus:ring-2 focus:ring-[#00478d]/20"
+                >
+                  <option value="">Tất cả brand</option>
+                  {facets.brands.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
                   ))}
-                </div>
+                </select>
               </div>
 
               <div className="mt-8">
-                <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-500">Giá cả</p>
-                <input type="range" className="mt-4 h-1.5 w-full cursor-pointer accent-[#00478d]" />
-                <div className="mt-2 flex justify-between text-xs font-medium text-slate-500">
-                  <span>1.000.000đ</span>
-                  <span>10.000.000đ</span>
+                <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-500">Loại gọng</p>
+                <select
+                  value={frameType}
+                  onChange={(event) => setFrameType(event.target.value)}
+                  className="mt-3 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-[#00478d] focus:ring-2 focus:ring-[#00478d]/20"
+                >
+                  <option value="">Tất cả loại gọng</option>
+                  {facets.frame_types.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mt-8">
+                <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-500">Giá (VND)</p>
+                <div className="mt-3 grid gap-3">
+                  <input
+                    type="number"
+                    min="0"
+                    value={minPrice}
+                    onChange={(event) => setMinPrice(event.target.value)}
+                    placeholder={`Từ ${formatCurrency(facets.price.min)}`}
+                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-[#00478d] focus:ring-2 focus:ring-[#00478d]/20"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    value={maxPrice}
+                    onChange={(event) => setMaxPrice(event.target.value)}
+                    placeholder={`Đến ${formatCurrency(facets.price.max)}`}
+                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-[#00478d] focus:ring-2 focus:ring-[#00478d]/20"
+                  />
                 </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery('');
+                  setKeyword('');
+                  setBrand('');
+                  setFrameType('');
+                  setMinPrice('');
+                  setMaxPrice('');
+                }}
+                className="mt-8 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#00478d] hover:text-[#00478d]"
+              >
+                Xoá bộ lọc
+              </button>
             </div>
           </aside>
 
           <div>
             <div className="mb-8 flex items-end justify-between">
-              <p className="text-sm font-medium text-slate-500">Hiển thị 24 sản phẩm</p>
-              <button type="button" className="text-sm font-bold text-[#00478d]">
-                Sắp xếp: Mới nhất
-              </button>
+              <p className="text-sm font-medium text-slate-500">Hiển thị {products.length} sản phẩm</p>
             </div>
 
-            <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-              {products.map((product) => (
-                <article
-                  key={product.name}
-                  className="group overflow-hidden rounded-[28px] bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-                >
-                  <div className="aspect-square bg-[#f9f9f9] p-8">
-                    <img src={product.image} alt={product.name} className="h-full w-full object-contain transition duration-500 group-hover:scale-105" />
-                  </div>
-                  <div className="p-6">
-                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#00478d]">{product.label}</p>
-                    <h3 className="mt-2 font-['Manrope'] text-xl font-extrabold text-slate-900">{product.name}</h3>
-                    <div className="mt-4 flex items-center justify-between">
-                      <span className="text-lg font-black text-slate-900">{product.price}</span>
-                      <Link to="/booking" className="text-sm font-bold text-[#00478d] transition hover:text-[#005eb8]">
-                        Đặt thử kính
-                      </Link>
+            {loading ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#005eb8]/20 border-t-[#005eb8]" />
+              </div>
+            ) : products.length === 0 ? (
+              <div className="rounded-[28px] border border-slate-200 bg-white px-6 py-10 text-center text-slate-600">
+                Không có sản phẩm phù hợp với bộ lọc hiện tại.
+              </div>
+            ) : (
+              <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+                {products.map((product) => (
+                  <article
+                    key={product.id}
+                    className="group overflow-hidden rounded-[28px] bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                  >
+                    <div className="aspect-square bg-[#f9f9f9] p-8">
+                      <img src={product.image_url} alt={product.name} className="h-full w-full object-contain transition duration-500 group-hover:scale-105" />
                     </div>
-                  </div>
-                </article>
-              ))}
-            </div>
+                    <div className="p-6">
+                      <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#00478d]">{product.brand}</p>
+                      <h3 className="mt-2 font-['Manrope'] text-xl font-extrabold text-slate-900">{product.name}</h3>
+                      <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{product.frame_type}</p>
+                      <p className="mt-3 text-sm leading-6 text-slate-600">{product.description || 'Không có mô tả.'}</p>
+                      <div className="mt-4 space-y-1">
+                        <p className="text-base font-black text-slate-900">{formatCurrency(product.price)}</p>
+                        <p className="text-sm font-medium text-slate-700">Số lượng còn: {product.quantity}</p>
+                      </div>
+                      <div className="mt-4">
+                        <Link to="/booking" className="text-sm font-bold text-[#00478d] transition hover:text-[#005eb8]">
+                          Đặt thử kính
+                        </Link>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>

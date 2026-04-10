@@ -5,10 +5,12 @@ import DefaultInfoForm from '../components/DefaultInfoForm';
 import BrandMark from '../components/BrandMark';
 import AvailabilitySummary from '../components/AvailabilitySummary';
 import WheelPrizeManager from '../components/WheelPrizeManager';
+import EyewearProductManager from '../components/EyewearProductManager';
+import PatientRecordManager from '../components/PatientRecordManager';
 import api from '../services/api';
 import type { Appointment, AvailabilitySetting, DefaultInfo } from '../types';
 
-type Tab = 'account' | 'availability' | 'appointments' | 'wheel' | 'password';
+type Tab = 'account' | 'availability' | 'appointments' | 'patients' | 'products' | 'wheel' | 'password';
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat('vi-VN', {
@@ -33,6 +35,8 @@ export default function AdminPage() {
   const [currentPw, setCurrentPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [pwLoading, setPwLoading] = useState(false);
+  const [patientSearch, setPatientSearch] = useState('');
+  const [patientNewSignal, setPatientNewSignal] = useState(0);
 
   useEffect(() => {
     fetchDefaultAccount();
@@ -173,6 +177,8 @@ export default function AdminPage() {
     { key: 'account', label: 'Tài khoản mặc định', icon: '🏦', hint: 'Quản lý thông tin tài khoản nhận thanh toán.' },
     { key: 'availability', label: 'Lịch làm việc', icon: '🗓️', hint: 'Thiết lập ngày và giờ mở lịch khám cho khách hàng.' },
     { key: 'appointments', label: 'Lịch hẹn', icon: '📅', hint: 'Theo dõi các lịch đặt khám gửi từ website.' },
+    { key: 'patients', label: 'Hồ sơ bệnh nhân', icon: '📋', hint: 'Nhập thông tin bệnh nhân và kết quả khám mắt (thị lực, khúc xạ).' },
+    { key: 'products', label: 'Gọng kính', icon: '🕶️', hint: 'Quản lý sản phẩm gọng kính hiển thị ngoài trang user.' },
     { key: 'wheel', label: 'Vòng quay', icon: '🎯', hint: 'Cấu hình phần thưởng và xác thực nhận quà.' },
     { key: 'password', label: 'Đổi mật khẩu', icon: '🔒', hint: 'Cập nhật mật khẩu đăng nhập quản trị viên.' },
   ];
@@ -180,45 +186,79 @@ export default function AdminPage() {
 
   return (
     <div
-      className="min-h-dvh bg-[#edf2f7] [--color-primary:#005eb8] [--color-primary-dark:#00478d] [--color-surface:#ffffff] [--color-surface-light:#f8fafc] [--color-surface-lighter:#edf2ff] [--color-accent-light:#00478d] [--color-text:#0f172a] [--color-text-muted:#64748b] [--color-border:#dbe3ee]"
+      className="min-h-dvh overflow-x-hidden bg-[#edf2f7] [--color-primary:#005eb8] [--color-primary-dark:#00478d] [--color-surface:#ffffff] [--color-surface-light:#f8fafc] [--color-surface-lighter:#edf2ff] [--color-accent-light:#00478d] [--color-text:#0f172a] [--color-text-muted:#64748b] [--color-border:#dbe3ee]"
     >
-      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[1280px] flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-          <div className="flex min-w-0 items-center gap-3">
-            <BrandMark size="sm" />
-            <div className="min-w-0">
-              <p className="font-['Manrope'] text-lg font-extrabold text-slate-900">AnVy Clinic Admin</p>
-              <p className="truncate text-xs font-medium text-slate-500">{user?.username}</p>
+      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-xl">
+        <div className="w-full px-3 pb-3 sm:px-6 lg:px-6">
+          <div className="flex flex-col gap-3">
+            <div className="flex min-w-0 items-start justify-between gap-2">
+              <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 lg:min-w-[200px]">
+                <span className="shrink-0 lg:hidden">
+                  <BrandMark size="sm" />
+                </span>
+                <div className="min-w-0">
+                  <p className="font-['Manrope'] text-base font-extrabold leading-tight text-slate-900 sm:text-lg">
+                    AnVy Clinic Admin
+                  </p>
+                  <p className="truncate text-xs font-medium text-slate-500">{user?.username}</p>
+                </div>
+              </div>
+
+              <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate('/')}
+                  className="rounded-full border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-[#00478d] hover:text-[#00478d] sm:px-4 sm:text-sm"
+                >
+                  Trang chủ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout();
+                    navigate('/login');
+                  }}
+                  className="rounded-full border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-100 sm:px-4 sm:text-sm"
+                >
+                  Đăng xuất
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={() => navigate('/')}
-              className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#00478d] hover:text-[#00478d]"
-            >
-              Trang chủ
-            </button>
-            <button
-              onClick={() => {
-                logout();
-                navigate('/login');
-              }}
-              className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100"
-            >
-              Đăng xuất
-            </button>
+
+            {tab === 'patients' && (
+              <div className="relative min-w-0 w-full">
+                <span className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-slate-400" aria-hidden>
+                  🔍
+                </span>
+                <input
+                  type="search"
+                  enterKeyHint="search"
+                  value={patientSearch}
+                  onChange={(e) => setPatientSearch(e.target.value)}
+                  placeholder="Tìm theo tên, SĐT hoặc mã hồ sơ…"
+                  className="w-full rounded-full border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#005eb8] focus:bg-white focus:ring-2 focus:ring-[#005eb8]/15 sm:text-sm"
+                  aria-label="Tìm hồ sơ bệnh nhân"
+                />
+              </div>
+            )}
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1280px] px-4 py-6 sm:px-6 lg:px-8">
-        <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <main className="w-full px-0 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:py-6">
+        <div className="grid gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
           <aside className="hidden lg:block">
             <div className="sticky top-24 space-y-4">
-              <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
-                <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#00478d]">Điều hướng</p>
-                <h2 className="mt-3 font-['Manrope'] text-xl font-extrabold text-slate-900">Quản trị hệ thống</h2>
-                <div className="mt-5 space-y-2">
+              <div className="rounded-r-[28px] border border-l-0 border-slate-200 bg-white p-5 shadow-xl shadow-slate-900/5">
+                <div className="flex items-center gap-3 border-b border-slate-200 pb-4">
+                  <BrandMark size="sm" />
+                  <div className="min-w-0">
+                    <p className="font-['Manrope'] text-lg font-extrabold text-slate-900">AnVy Clinic</p>
+                    <p className="text-xs font-medium text-slate-500">Quản trị phòng khám</p>
+                  </div>
+                </div>
+                <p className="mt-4 text-xs font-bold uppercase tracking-[0.28em] text-[#00478d]">Menu</p>
+                <div className="mt-3 space-y-1.5">
                   {tabs.map((item) => (
                     <button
                       key={item.key}
@@ -226,21 +266,33 @@ export default function AdminPage() {
                         setTab(item.key);
                         setMessage(null);
                       }}
-                      className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-semibold transition ${
+                      className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-semibold transition ${
                         tab === item.key
-                          ? 'bg-[linear-gradient(135deg,#00478d_0%,#005eb8_100%)] text-white shadow-lg shadow-blue-900/20'
-                          : 'bg-[#f7f9fc] text-slate-700 hover:bg-[#ecf2ff] hover:text-[#00478d]'
+                          ? 'bg-[linear-gradient(135deg,#00478d_0%,#005eb8_100%)] text-white shadow-lg shadow-blue-900/15'
+                          : 'text-slate-600 hover:bg-[#eaf4ff] hover:text-[#00478d]'
                       }`}
                     >
-                      <span className="text-lg">{item.icon}</span>
+                      <span className="text-lg opacity-90">{item.icon}</span>
                       <span>{item.label}</span>
                     </button>
                   ))}
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTab('patients');
+                    setPatientNewSignal((n) => n + 1);
+                    setMessage(null);
+                  }}
+                  className="mt-5 w-full rounded-2xl bg-[linear-gradient(135deg,#0ea5e9_0%,#005eb8_100%)] px-4 py-3 text-center text-sm font-bold text-white shadow-lg shadow-blue-900/15 transition hover:opacity-95"
+                >
+                  + Hồ sơ bệnh nhân mới
+                </button>
               </div>
 
-              <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
-                <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-500">Trạng thái</p>
+              <div className="rounded-r-[28px] border border-l-0 border-slate-200 bg-[#f8fafc] p-5 shadow-sm">
+                <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#00478d]">Trạng thái</p>
                 <p className="mt-3 text-sm leading-6 text-slate-600">
                   Bạn đang đăng nhập với quyền quản trị viên. Mọi thay đổi được áp dụng trực tiếp lên hệ thống production.
                 </p>
@@ -248,7 +300,7 @@ export default function AdminPage() {
             </div>
           </aside>
 
-          <section className="min-w-0">
+          <section className="min-w-0 px-3 sm:px-6 lg:pl-0 lg:pr-6">
             <div className="mb-4 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm lg:hidden">
               <label htmlFor="admin-mobile-tab" className="mb-2 block text-xs font-bold uppercase tracking-[0.22em] text-slate-500">
                 Menu quản trị
@@ -260,7 +312,7 @@ export default function AdminPage() {
                   setTab(event.target.value as Tab);
                   setMessage(null);
                 }}
-                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-[#00478d] focus:ring-2 focus:ring-[#00478d]/20"
+                className="w-full min-h-[48px] rounded-xl border border-slate-300 bg-white px-4 py-3 text-base font-semibold text-slate-800 outline-none transition focus:border-[#00478d] focus:ring-2 focus:ring-[#00478d]/20 sm:text-sm"
               >
                 {tabs.map((item) => (
                   <option key={item.key} value={item.key}>
@@ -268,17 +320,35 @@ export default function AdminPage() {
                   </option>
                 ))}
               </select>
+              {tab === 'patients' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPatientNewSignal((n) => n + 1);
+                    setMessage(null);
+                  }}
+                  className="mt-3 w-full min-h-[48px] rounded-2xl bg-[linear-gradient(135deg,#0ea5e9_0%,#005eb8_100%)] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-blue-950/20 transition hover:opacity-95 active:scale-[0.99]"
+                >
+                  + Hồ sơ bệnh nhân mới
+                </button>
+              )}
             </div>
 
-            <div className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-              <div className="mb-5 border-b border-slate-200 pb-5">
-                <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#00478d]">Dashboard</p>
-                <h1 className="mt-3 font-['Manrope'] text-3xl font-extrabold tracking-[-0.02em] text-slate-900">
-                  <span className="mr-2">{currentTab.icon}</span>
-                  {currentTab.label}
-                </h1>
-                <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">{currentTab.hint}</p>
-              </div>
+            <div
+              className={`rounded-[24px] border border-slate-200 bg-white shadow-sm sm:rounded-[30px] ${
+                tab === 'patients' ? 'p-4 sm:p-5' : 'p-4 sm:p-6 lg:p-7'
+              }`}
+            >
+              {tab !== 'patients' && (
+                <div className="mb-5 border-b border-slate-200 pb-5">
+                  <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#00478d]">Dashboard</p>
+                  <h1 className="mt-2 font-['Manrope'] text-2xl font-extrabold tracking-[-0.02em] text-slate-900 sm:mt-3 sm:text-3xl">
+                    <span className="mr-2">{currentTab.icon}</span>
+                    {currentTab.label}
+                  </h1>
+                  <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 sm:leading-7">{currentTab.hint}</p>
+                </div>
+              )}
 
               {message && (
                 <div
@@ -438,6 +508,15 @@ export default function AdminPage() {
           )}
 
           {tab === 'wheel' && <WheelPrizeManager />}
+          {tab === 'products' && <EyewearProductManager />}
+
+          {tab === 'patients' && (
+            <PatientRecordManager
+              searchQuery={patientSearch}
+              newEntrySignal={patientNewSignal}
+              onMessage={setMessage}
+            />
+          )}
 
           {tab === 'appointments' &&
             (appointmentsLoading ? (
