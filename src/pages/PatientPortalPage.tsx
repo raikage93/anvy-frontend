@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import PublicShell from '../components/PublicShell';
 import api from '../services/api';
@@ -122,6 +122,138 @@ function getTableRows(record: PatientRecord, mode: PrescriptionMode) {
       ];
 }
 
+function getDownloadFileName(record: PatientRecord) {
+  const safePhone = record.phone.replace(/[^\d]/g, '') || `LUM-${record.id}`;
+  return `anvy-ket-qua-kham-${safePhone}-${record.exam_date || record.id}.png`;
+}
+
+function DownloadTable({ record, mode, title }: { record: PatientRecord; mode: PrescriptionMode; title: string }) {
+  const rows = getTableRows(record, mode);
+
+  return (
+    <section className="overflow-hidden rounded-lg border border-[#d7dde5]">
+      <div className="bg-[#eef4fa] px-5 py-3">
+        <h3 className="font-['Manrope'] text-base font-extrabold text-[#00478d]">{title}</h3>
+      </div>
+      <table className="w-full border-collapse text-left text-sm">
+        <thead>
+          <tr className="border-b border-[#d7dde5] bg-[#f8fafc] text-xs uppercase tracking-wider text-[#424752]">
+            <th className="px-4 py-3">Mắt</th>
+            {mode !== 'unaided' ? (
+              <>
+                <th className="px-4 py-3">SPH</th>
+                <th className="px-4 py-3">CYL</th>
+                <th className="px-4 py-3">AX</th>
+              </>
+            ) : null}
+            <th className="px-4 py-3">Thị lực</th>
+            <th className="px-4 py-3">Thị lực 2 mắt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, index) => (
+            <tr key={`${mode}-${row.eye}`} className="border-b border-[#eef2f6] last:border-b-0">
+              <td className="px-4 py-3 font-bold text-[#00478d]">{row.eye}</td>
+              {mode !== 'unaided' ? (
+                <>
+                  <td className="px-4 py-3 font-semibold text-[#191c1e]">{formatDiopter(row.sphere)}</td>
+                  <td className="px-4 py-3 font-semibold text-[#191c1e]">{formatDiopter(row.cylinder)}</td>
+                  <td className="px-4 py-3 font-semibold text-[#191c1e]">
+                    {row.axis === null || row.axis === undefined ? '—' : `${row.axis}°`}
+                  </td>
+                </>
+              ) : null}
+              <td className="px-4 py-3 font-bold text-[#191c1e]">{display(row.va)}</td>
+              {index === 0 ? (
+                <td className="px-4 py-3 font-bold text-[#191c1e]" rowSpan={2}>
+                  {display(row.va_binocular)}
+                </td>
+              ) : null}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
+function ResultDownloadTemplate({ record }: { record: PatientRecord }) {
+  return (
+    <div className="w-[1080px] bg-white p-14 font-['Inter'] text-[#191c1e]">
+      <header className="flex items-start justify-between border-b-4 border-[#00478d] pb-8">
+        <div className="flex items-center gap-5">
+          <img src="/image/logo-best-transparent.png" alt="AnVy Clinic" className="h-24 w-24 object-contain" />
+          <div>
+            <p className="font-['Manrope'] text-4xl font-extrabold text-[#00478d]">AnVy Clinic</p>
+            <p className="mt-2 text-lg font-semibold text-[#424752]">Phiếu kết quả khám mắt</p>
+          </div>
+        </div>
+        <div className="rounded-lg bg-[#eef4fa] px-5 py-4 text-right">
+          <p className="text-xs font-bold uppercase tracking-widest text-[#424752]">Mã hồ sơ</p>
+          <p className="mt-1 font-['Manrope'] text-2xl font-extrabold text-[#00478d]">#LUM-{record.id}</p>
+        </div>
+      </header>
+
+      <section className="mt-8 grid grid-cols-2 gap-4 rounded-lg border border-[#d7dde5] bg-[#f8fafc] p-6">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest text-[#64748b]">Họ và tên</p>
+          <p className="mt-2 font-['Manrope'] text-2xl font-extrabold text-[#191c1e]">{display(record.full_name)}</p>
+        </div>
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest text-[#64748b]">Số điện thoại</p>
+          <p className="mt-2 font-['Manrope'] text-2xl font-extrabold text-[#191c1e]">{display(record.phone)}</p>
+        </div>
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest text-[#64748b]">Năm sinh</p>
+          <p className="mt-2 text-lg font-bold text-[#191c1e]">{display(record.birth_year)}</p>
+        </div>
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest text-[#64748b]">Ngày khám</p>
+          <p className="mt-2 text-lg font-bold text-[#191c1e]">{formatDate(record.exam_date)}</p>
+        </div>
+        <div className="col-span-2">
+          <p className="text-xs font-bold uppercase tracking-widest text-[#64748b]">Địa chỉ</p>
+          <p className="mt-2 text-base font-semibold leading-7 text-[#191c1e]">{display(record.address)}</p>
+        </div>
+      </section>
+
+      <div className="mt-8 space-y-5">
+        <DownloadTable record={record} mode="unaided" title="Thị lực không kính" />
+        <DownloadTable record={record} mode="old" title="Thị lực kính cũ" />
+        <DownloadTable record={record} mode="new" title="Thị lực kính mới" />
+      </div>
+
+      <section className="mt-8 grid grid-cols-2 gap-5">
+        <div className="rounded-lg border border-[#d7dde5] bg-[#f8fafc] p-5">
+          <p className="text-xs font-bold uppercase tracking-widest text-[#64748b]">Ghi chú lâm sàng</p>
+          <p className="mt-3 whitespace-pre-line text-base font-medium leading-8 text-[#191c1e]">
+            {display(record.quick_medical_assessment || record.clinical_diagnosis)}
+          </p>
+        </div>
+        <div className="rounded-lg border border-[#d7dde5] bg-[#f8fafc] p-5">
+          <p className="text-xs font-bold uppercase tracking-widest text-[#64748b]">Tóm tắt & chẩn đoán</p>
+          <p className="mt-3 whitespace-pre-line text-base font-medium leading-8 text-[#191c1e]">
+            {display(record.clinical_diagnosis || record.quick_medical_assessment)}
+          </p>
+          {record.next_appointment_date ? (
+            <div className="mt-5 rounded-md bg-[#eef4fa] p-4">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#00478d]">Ngày hẹn khám tiếp theo</p>
+              <p className="mt-2 font-['Manrope'] text-xl font-extrabold text-[#00478d]">
+                {formatDate(record.next_appointment_date)}
+              </p>
+            </div>
+          ) : null}
+        </div>
+      </section>
+
+      <footer className="mt-10 flex items-center justify-between border-t border-[#d7dde5] pt-5 text-sm font-semibold text-[#64748b]">
+        <span>AnVy Clinic - Eye Care for Kids</span>
+        <span>Phiếu kết quả được tạo từ hệ thống AnVy Clinic</span>
+      </footer>
+    </div>
+  );
+}
+
 function EmptyPanel() {
   return (
     <div className="rounded-lg border border-dashed border-[#c2c6d4] bg-white p-10 text-center shadow-[0_20px_50px_-12px_rgba(25,28,30,0.06)]">
@@ -134,11 +266,13 @@ function EmptyPanel() {
 }
 
 export default function PatientPortalPage() {
+  const downloadRef = useRef<HTMLDivElement | null>(null);
   const [phone, setPhone] = useState('');
   const [records, setRecords] = useState<PatientRecord[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [activeMode, setActiveMode] = useState<PrescriptionMode>('unaided');
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -181,6 +315,29 @@ export default function PatientPortalPage() {
       setMessage(getErrorMessage(error));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadResult = async () => {
+    if (!selectedRecord || !downloadRef.current) return;
+    setDownloading(true);
+    setMessage('');
+
+    try {
+      const { toPng } = await import('html-to-image');
+      const dataUrl = await toPng(downloadRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+      });
+      const link = document.createElement('a');
+      link.download = getDownloadFileName(selectedRecord);
+      link.href = dataUrl;
+      link.click();
+    } catch {
+      setMessage('Không thể tải ảnh kết quả lúc này. Vui lòng thử lại sau.');
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -296,18 +453,20 @@ export default function PatientPortalPage() {
                     <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
                       <button
                         type="button"
+                        onClick={handleDownloadResult}
+                        disabled={downloading}
+                        className="flex w-full items-center justify-center gap-2 rounded-md bg-[#00478d] px-4 py-2 text-sm font-bold text-white transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                      >
+                        <span>⇩</span>
+                        {downloading ? 'Đang tạo ảnh...' : 'Tải kết quả'}
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => window.print()}
                         className="flex w-full items-center justify-center gap-2 rounded-md bg-[#e6e8ea] px-4 py-2 text-sm font-bold text-[#00478d] transition-all hover:bg-[#00478d] hover:text-white sm:w-auto"
                       >
                         <span>⎙</span>
                         In kết quả
-                      </button>
-                      <button
-                        type="button"
-                        className="flex w-full items-center justify-center gap-2 rounded-md bg-[#ffdea5] px-4 py-2 text-sm font-bold text-[#261900] transition-all hover:opacity-90 sm:w-auto"
-                      >
-                        <span>↗</span>
-                        Chia sẻ
                       </button>
                     </div>
                   </div>
@@ -440,6 +599,14 @@ export default function PatientPortalPage() {
                 </div>
 
               </section>
+            </div>
+          ) : null}
+
+          {selectedRecord ? (
+            <div aria-hidden className="pointer-events-none fixed -left-[9999px] top-0">
+              <div ref={downloadRef}>
+                <ResultDownloadTemplate record={selectedRecord} />
+              </div>
             </div>
           ) : null}
         </div>
