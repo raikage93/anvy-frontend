@@ -190,6 +190,23 @@ function formatDate(value: string | null | undefined) {
   return value || '—';
 }
 
+function normalizeVisionValue(raw: string) {
+  const value = raw.trim().replace(/\s+/g, '');
+  if (!value) return '';
+  if (/^\d{1,2}$/.test(value)) return `${value}/10`;
+  return value;
+}
+
+function visionLabel(mode: 'unaided' | 'old' | 'new', eye: 'mp' | 'mt' | 'binocular') {
+  const modeLabel = mode === 'unaided' ? 'Không kính' : mode === 'old' ? 'Kính cũ' : 'Kính mới';
+  const eyeLabel = eye === 'mp' ? 'MP' : eye === 'mt' ? 'MT' : '2 mắt';
+  return `${modeLabel} ${eyeLabel}`;
+}
+
+function eyeLabel(eye: 'mp' | 'mt') {
+  return eye === 'mp' ? 'Mắt phải (MP)' : 'Mắt trái (MT)';
+}
+
 export default function PatientRecordManager({ searchQuery, newEntrySignal, onMessage }: Props) {
   const [view, setView] = useState<View>('list');
   const [profiles, setProfiles] = useState<PatientProfile[]>([]);
@@ -350,11 +367,17 @@ export default function PatientRecordManager({ searchQuery, newEntrySignal, onMe
     setResultForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  const updateVisionField = (key: keyof ExamResultFormPayload, value: string) => {
+    setResultForm((prev) => ({ ...prev, [key]: normalizeVisionValue(value) }));
+  };
+
   const fieldClass =
-    'w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-[#005eb8] focus:ring-2 focus:ring-[#005eb8]/20';
+    'w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-base text-slate-900 outline-none transition focus:border-[#005eb8] focus:ring-2 focus:ring-[#005eb8]/20 sm:text-sm';
+  const refractionFieldClass =
+    'mt-1.5 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 py-2.5 text-center text-base font-semibold text-slate-900 outline-none transition focus:border-[#005eb8] focus:ring-2 focus:ring-[#005eb8]/20 sm:text-sm';
 
   const profileFields = (
-    <section className="rounded-[24px] border border-slate-200 bg-[#f8fafc] p-5 shadow-sm">
+    <section className="min-w-0 rounded-[20px] border border-slate-200 bg-[#f8fafc] p-4 shadow-sm sm:rounded-[24px] sm:p-5">
       <h3 className="font-['Manrope'] text-lg font-bold text-slate-900">Thông tin hồ sơ</h3>
       <p className="mt-1 text-xs text-slate-500">Một số điện thoại chỉ thuộc về duy nhất một hồ sơ bệnh nhân.</p>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -379,7 +402,7 @@ export default function PatientRecordManager({ searchQuery, newEntrySignal, onMe
   );
 
   const resultFields = (
-    <section className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="min-w-0 rounded-[20px] border border-slate-200 bg-white p-4 shadow-sm sm:rounded-[24px] sm:p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 className="font-['Manrope'] text-lg font-bold text-slate-900">
@@ -394,15 +417,15 @@ export default function PatientRecordManager({ searchQuery, newEntrySignal, onMe
               setShowResultForm(false);
               setEditingResultId(null);
             }}
-            className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+            className="min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 sm:w-auto"
           >
             Đóng
           </button>
         ) : null}
       </div>
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-2">
-        <div className="space-y-4">
+      <div className="mt-5 grid min-w-0 gap-4 lg:grid-cols-2 lg:gap-5">
+        <div className="min-w-0 space-y-4">
           <label className="block text-sm font-medium text-slate-600">
             Ngày khám
             <input type="date" value={resultForm.exam_date} onChange={(e) => updateResultField('exam_date', e.target.value)} className={`${fieldClass} mt-1.5`} />
@@ -421,16 +444,23 @@ export default function PatientRecordManager({ searchQuery, newEntrySignal, onMe
           </label>
         </div>
 
-        <div className="space-y-5">
-          <div>
+        <div className="min-w-0 space-y-5">
+          <div className="min-w-0">
             <p className="text-sm font-bold text-slate-900">Thị lực</p>
-            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <div className="mt-3 grid min-w-0 grid-cols-1 gap-2.5 min-[360px]:grid-cols-2 sm:grid-cols-3 sm:gap-3">
               {(['mp', 'mt', 'binocular'] as const).map((eye) => {
                 const key = `va_unaided_${eye}` as keyof ExamResultFormPayload;
                 return (
-                  <label key={key} className="block rounded-2xl bg-blue-50 p-3 text-xs font-semibold text-blue-700">
-                    Không kính {eye.toUpperCase()}
-                    <input value={resultForm[key]} onChange={(e) => updateResultField(key, e.target.value)} className="mt-2 w-full border-0 bg-transparent text-center text-lg font-bold text-slate-900 outline-none" />
+                  <label key={key} className="block min-w-0 rounded-xl bg-blue-50 p-3 text-xs font-semibold text-blue-700">
+                    <span className="block truncate">{visionLabel('unaided', eye)}</span>
+                    <input
+                      inputMode="numeric"
+                      placeholder="1/10"
+                      value={resultForm[key]}
+                      onChange={(e) => updateResultField(key, e.target.value)}
+                      onBlur={(e) => updateVisionField(key, e.target.value)}
+                      className="mt-2 w-full min-w-0 border-0 bg-transparent text-center text-lg font-bold text-slate-900 outline-none"
+                    />
                   </label>
                 );
               })}
@@ -438,9 +468,16 @@ export default function PatientRecordManager({ searchQuery, newEntrySignal, onMe
                 (['mp', 'mt', 'binocular'] as const).map((eye) => {
                   const key = `va_${mode}_${eye}` as keyof ExamResultFormPayload;
                   return (
-                    <label key={key} className="block rounded-2xl bg-slate-100 p-3 text-xs font-semibold text-slate-500">
-                      {mode === 'old' ? 'Cũ' : 'Mới'} {eye.toUpperCase()}
-                      <input value={resultForm[key]} onChange={(e) => updateResultField(key, e.target.value)} className="mt-2 w-full border-0 bg-transparent text-center text-lg font-bold text-slate-900 outline-none" />
+                    <label key={key} className="block min-w-0 rounded-xl bg-slate-100 p-3 text-xs font-semibold text-slate-500">
+                      <span className="block truncate">{visionLabel(mode, eye)}</span>
+                      <input
+                        inputMode="numeric"
+                        placeholder="1/10"
+                        value={resultForm[key]}
+                        onChange={(e) => updateResultField(key, e.target.value)}
+                        onBlur={(e) => updateVisionField(key, e.target.value)}
+                        className="mt-2 w-full min-w-0 border-0 bg-transparent text-center text-lg font-bold text-slate-900 outline-none"
+                      />
                     </label>
                   );
                 })
@@ -449,46 +486,45 @@ export default function PatientRecordManager({ searchQuery, newEntrySignal, onMe
           </div>
 
           {(['old', 'new'] as const).map((mode) => (
-            <div key={mode} className="overflow-hidden rounded-2xl border border-slate-200">
+            <div key={mode} className="min-w-0 overflow-hidden rounded-xl border border-slate-200">
               <div className="bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900">Khúc xạ kính {mode === 'old' ? 'cũ' : 'mới'}</div>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[420px] text-left text-sm">
-                  <thead className="bg-white text-xs uppercase tracking-wide text-slate-500">
-                    <tr>
-                      <th className="px-3 py-2">Mắt</th>
-                      <th className="px-3 py-2">Sph.</th>
-                      <th className="px-3 py-2">Cyl.</th>
-                      <th className="px-3 py-2">Axis°</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(['mp', 'mt'] as const).map((eye) => {
-                      const sphereKey = `sphere_${mode}_${eye}` as keyof ExamResultFormPayload;
-                      const cylinderKey = `cylinder_${mode}_${eye}` as keyof ExamResultFormPayload;
-                      const axisKey = `axis_${mode}_${eye}` as keyof ExamResultFormPayload;
-                      return (
-                        <tr key={`${mode}-${eye}`} className="border-t border-slate-100">
-                          <td className="px-3 py-2 font-semibold text-slate-700">{eye.toUpperCase()}</td>
-                          <td className="px-2 py-2"><input value={resultForm[sphereKey]} onChange={(e) => updateResultField(sphereKey, e.target.value)} className={fieldClass} /></td>
-                          <td className="px-2 py-2"><input value={resultForm[cylinderKey]} onChange={(e) => updateResultField(cylinderKey, e.target.value)} className={fieldClass} /></td>
-                          <td className="px-2 py-2"><input value={resultForm[axisKey]} onChange={(e) => updateResultField(axisKey, e.target.value)} className={fieldClass} /></td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className="grid min-w-0 gap-3 bg-white p-3 sm:grid-cols-2">
+                {(['mp', 'mt'] as const).map((eye) => {
+                  const sphereKey = `sphere_${mode}_${eye}` as keyof ExamResultFormPayload;
+                  const cylinderKey = `cylinder_${mode}_${eye}` as keyof ExamResultFormPayload;
+                  const axisKey = `axis_${mode}_${eye}` as keyof ExamResultFormPayload;
+                  return (
+                    <div key={`${mode}-${eye}`} className="min-w-0 rounded-xl border border-slate-100 bg-slate-50 p-3">
+                      <p className="text-sm font-bold text-slate-800">{eyeLabel(eye)}</p>
+                      <div className="mt-3 grid min-w-0 grid-cols-3 gap-2">
+                        <label className="min-w-0 text-[11px] font-bold uppercase text-slate-500">
+                          Sph.
+                          <input inputMode="decimal" value={resultForm[sphereKey]} onChange={(e) => updateResultField(sphereKey, e.target.value)} className={refractionFieldClass} />
+                        </label>
+                        <label className="min-w-0 text-[11px] font-bold uppercase text-slate-500">
+                          Cyl.
+                          <input inputMode="decimal" value={resultForm[cylinderKey]} onChange={(e) => updateResultField(cylinderKey, e.target.value)} className={refractionFieldClass} />
+                        </label>
+                        <label className="min-w-0 text-[11px] font-bold uppercase text-slate-500">
+                          Axis
+                          <input inputMode="numeric" value={resultForm[axisKey]} onChange={(e) => updateResultField(axisKey, e.target.value)} className={refractionFieldClass} />
+                        </label>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="mt-5 flex justify-end">
+      <div className="sticky bottom-0 -mx-4 mt-5 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-t-0 sm:bg-transparent sm:px-0 sm:py-0">
         <button
           type="button"
           onClick={selected ? saveResult : saveInitialProfile}
           disabled={saving}
-          className="rounded-xl bg-[#005eb8] px-5 py-2.5 text-sm font-semibold text-white shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-xl bg-[#005eb8] px-5 py-3 text-sm font-semibold text-white shadow-md disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:py-2.5"
         >
           {saving ? 'Đang lưu...' : selected ? (editingResultId ? 'Cập nhật kết quả' : 'Lưu kết quả mới') : 'Lưu hồ sơ'}
         </button>
@@ -498,15 +534,15 @@ export default function PatientRecordManager({ searchQuery, newEntrySignal, onMe
 
   if (view === 'create') {
     return (
-      <div className="space-y-5">
+      <div className="min-w-0 space-y-5">
         <div className="flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Hồ sơ bệnh nhân / Tạo mới</p>
-            <h2 className="mt-1 font-['Manrope'] text-2xl font-extrabold text-slate-900">Tạo hồ sơ và kết quả khám đầu tiên</h2>
+            <h2 className="mt-1 font-['Manrope'] text-xl font-extrabold text-slate-900 sm:text-2xl">Tạo hồ sơ và kết quả khám đầu tiên</h2>
           </div>
-          <div className="flex gap-2">
-            <button type="button" onClick={() => setView('list')} className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700">Hủy</button>
-            <button type="button" onClick={saveInitialProfile} disabled={saving} className="rounded-xl bg-[#005eb8] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
+          <div className="grid grid-cols-1 gap-2 sm:flex">
+            <button type="button" onClick={() => setView('list')} className="w-full rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 sm:w-auto">Hủy</button>
+            <button type="button" onClick={saveInitialProfile} disabled={saving} className="w-full rounded-xl bg-[#005eb8] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60 sm:w-auto">
               {saving ? 'Đang lưu...' : 'Lưu hồ sơ'}
             </button>
           </div>
@@ -519,18 +555,18 @@ export default function PatientRecordManager({ searchQuery, newEntrySignal, onMe
 
   if (view === 'detail' && selected) {
     return (
-      <div className="space-y-5">
+      <div className="min-w-0 space-y-5">
         <div className="flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <button type="button" onClick={() => setView('list')} className="text-sm font-semibold text-[#005eb8]">← Quay lại danh sách</button>
-            <h2 className="mt-2 font-['Manrope'] text-2xl font-extrabold text-slate-900">{selected.full_name}</h2>
+            <h2 className="mt-2 break-words font-['Manrope'] text-xl font-extrabold text-slate-900 sm:text-2xl">{selected.full_name}</h2>
             <p className="mt-1 text-sm text-slate-600">{selected.phone} · {selected.result_count} kết quả khám</p>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <button type="button" onClick={saveProfileInfo} disabled={saving} className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 disabled:opacity-60">
+          <div className="grid grid-cols-1 gap-2 sm:flex">
+            <button type="button" onClick={saveProfileInfo} disabled={saving} className="w-full rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 disabled:opacity-60 sm:w-auto">
               Lưu thông tin hồ sơ
             </button>
-            <button type="button" onClick={startAddResult} className="rounded-xl bg-[#005eb8] px-5 py-2.5 text-sm font-semibold text-white">
+            <button type="button" onClick={startAddResult} className="w-full rounded-xl bg-[#005eb8] px-5 py-2.5 text-sm font-semibold text-white sm:w-auto">
               + Thêm kết quả khám
             </button>
           </div>
@@ -539,7 +575,7 @@ export default function PatientRecordManager({ searchQuery, newEntrySignal, onMe
         {profileFields}
         {showResultForm ? resultFields : null}
 
-        <section className="rounded-[24px] border border-slate-200 bg-[#f8fafc] p-5 shadow-sm">
+        <section className="min-w-0 rounded-[20px] border border-slate-200 bg-[#f8fafc] p-4 shadow-sm sm:rounded-[24px] sm:p-5">
           <h3 className="font-['Manrope'] text-lg font-bold text-slate-900">Danh sách kết quả theo ngày khám</h3>
           <div className="mt-4 grid gap-3">
             {(selected.results || []).length === 0 ? (
@@ -552,7 +588,7 @@ export default function PatientRecordManager({ searchQuery, newEntrySignal, onMe
                       <p className="font-['Manrope'] text-lg font-bold text-slate-900">Ngày khám: {formatDate(result.exam_date)}</p>
                       <p className="mt-1 text-sm text-slate-600">{result.clinical_diagnosis || result.quick_medical_assessment || 'Chưa có chẩn đoán'}</p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="grid grid-cols-2 gap-2 sm:flex">
                       <button type="button" onClick={() => startEditResult(result)} className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-[#005eb8]">Sửa</button>
                       <button type="button" onClick={() => deleteResult(result.id)} className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700">Xóa</button>
                     </div>

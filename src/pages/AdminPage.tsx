@@ -300,7 +300,7 @@ export default function AdminPage() {
             </div>
           </aside>
 
-          <section className="min-w-0 px-3 sm:px-6 lg:pl-0 lg:pr-6">
+          <section className="min-w-0 max-w-full px-2 sm:px-6 lg:pl-0 lg:pr-6">
             <div className="mb-4 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm lg:hidden">
               <label htmlFor="admin-mobile-tab" className="mb-2 block text-xs font-bold uppercase tracking-[0.22em] text-slate-500">
                 Menu quản trị
@@ -335,8 +335,8 @@ export default function AdminPage() {
             </div>
 
             <div
-              className={`rounded-[24px] border border-slate-200 bg-white shadow-sm sm:rounded-[30px] ${
-                tab === 'patients' ? 'p-4 sm:p-5' : 'p-4 sm:p-6 lg:p-7'
+              className={`min-w-0 rounded-[20px] border border-slate-200 bg-white shadow-sm sm:rounded-[30px] ${
+                tab === 'patients' ? 'p-3 sm:p-5' : 'p-4 sm:p-6 lg:p-7'
               }`}
             >
               {tab !== 'patients' && (
